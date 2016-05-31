@@ -1,14 +1,13 @@
-const stream = require('stream');
-const url = require('url');
-const parseHeader = require('./helper/parse-header');
+import * as stream from 'stream';
+import { parseHeader, parseUrl } from '@scola/http';
 
-class ServerRequest extends stream.Readable {
+export default class ServerRequest extends stream.Readable {
   constructor(request) {
     super({
       objectMode: true
     });
 
-    const parsedUrl = url.parse(request.url);
+    const parsedUrl = parseUrl(request.url);
     const [path, version = ''] = parsedUrl.pathname.split('@');
 
     this.request = request;
@@ -86,5 +85,3 @@ class ServerRequest extends stream.Readable {
     });
   }
 }
-
-module.exports = ServerRequest;

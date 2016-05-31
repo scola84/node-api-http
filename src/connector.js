@@ -1,8 +1,8 @@
-const events = require('@scola/events');
-const ServerRequest = require('./server-request');
-const ServerResponse = require('./server-response');
+import EventEmitter from '@scola/events';
+import ServerRequest from './server-request';
+import ServerResponse from './server-response';
 
-class HttpConnector extends events.EventEmitter {
+export default class Connector extends EventEmitter {
   constructor(server, router) {
     super();
 
@@ -38,5 +38,3 @@ class HttpConnector extends events.EventEmitter {
     this.router.handleRequest(request, response);
   }
 }
-
-module.exports = HttpConnector;

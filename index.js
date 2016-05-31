@@ -1,5 +1,3 @@
-module.exports = {
-  Connector: require('./lib/connector'),
-  ServerRequest: require('./lib/server-request'),
-  ServerResponse: require('./lib/server-response')
-};
+export { default as Connector } from './src/connector';
+export { default as ServerRequest } from './src/server-request';
+export { default as ServerResponse } from './src/server-response';

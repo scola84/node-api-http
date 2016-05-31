@@ -1,6 +1,6 @@
-const events = require('events');
+import EventEmitter from '@scola/events';
 
-class ServerResponse extends events.EventEmitter {
+export default class ServerResponse extends EventEmitter {
   constructor(response) {
     super();
 
@@ -108,5 +108,3 @@ class ServerResponse extends events.EventEmitter {
     return this._first;
   }
 }
-
-module.exports = ServerResponse;
