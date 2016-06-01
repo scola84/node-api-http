@@ -75,19 +75,11 @@ export default class ServerResponse extends EventEmitter {
   }
 
   write(chunk, encoding, callback) {
-    try {
-      this._transform().write(chunk, encoding, callback);
-    } catch (error) {
-      this.emit('error', new Error('500 ' + error.message));
-    }
+    this._transform().write(chunk, encoding, callback);
   }
 
   end(chunk, encoding, callback) {
-    try {
-      this._transform().end(chunk, encoding, callback);
-    } catch (error) {
-      this.emit('error', new Error('500 ' + error.message));
-    }
+    this._transform().end(chunk, encoding, callback);
   }
 
   _transform() {

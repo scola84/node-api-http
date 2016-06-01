@@ -62,14 +62,6 @@ export default class ServerRequest extends stream.Readable {
   }
 
   _read() {
-    try {
-      this._transform();
-    } catch (error) {
-      this.emit('error', new Error('400 ' + error.message));
-    }
-  }
-
-  _transform() {
     let i = 0;
     const transformers = [...this.transformers.values()];
 
