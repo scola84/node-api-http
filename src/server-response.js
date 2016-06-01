@@ -72,6 +72,7 @@ export default class ServerResponse extends EventEmitter {
 
   clear() {
     this.transformers.clear();
+    this._first = null;
   }
 
   write(chunk, encoding, callback) {
