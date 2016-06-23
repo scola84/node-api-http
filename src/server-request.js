@@ -1,7 +1,8 @@
-import * as stream from 'stream';
-import { parseHeader, parseUrl } from '@scola/http';
+import { Readable } from 'stream';
+import { parse as parseUrl } from 'url';
+import parseHeader from './helper/parse-header';
 
-export default class ServerRequest extends stream.Readable {
+export default class ServerRequest extends Readable {
   constructor(request) {
     super({
       objectMode: true
