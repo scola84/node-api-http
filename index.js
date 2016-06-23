@@ -4,6 +4,6 @@ export { default as ServerResponse } from './src/server-response';
 import Connector from './src/connector';
 export { Connector };
 
-export default function connector(server, router) {
+export function connector(server, router) {
   return new Connector(server, router);
 }
