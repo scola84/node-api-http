@@ -6,35 +6,35 @@ export default class Connector extends EventEmitter {
   constructor(server, router) {
     super();
 
-    this.server = server;
-    this.router = router;
+    this._server = server;
+    this._router = router;
 
-    this.bindServer();
+    this._bindServer();
   }
 
   close(callback) {
-    this.unbindServer();
+    this._unbindServer();
     callback();
   }
 
-  bindServer() {
-    this.bind(this.server, 'error', this.handleError);
-    this.bind(this.server, 'request', this.handleRequest);
+  _bindServer() {
+    this.bind(this._server, 'error', this._handleError);
+    this.bind(this._server, 'request', this._handleRequest);
   }
 
-  unbindServer() {
-    this.unbind(this.server, 'error', this.handleError);
-    this.unbind(this.server, 'request', this.handleRequest);
+  _unbindServer() {
+    this.unbind(this._server, 'error', this._handleError);
+    this.unbind(this._server, 'request', this._handleRequest);
   }
 
-  handleError(error) {
+  _handleError(error) {
     this.emit('error', error);
   }
 
-  handleRequest(request, response) {
+  _handleRequest(request, response) {
     request = new ServerRequest(request);
     response = new ServerResponse(response);
 
-    this.router.handleRequest(request, response);
+    this._router.handleRequest(request, response);
   }
 }

@@ -29,7 +29,7 @@ export default class ServerRequest extends Readable {
     this.matchedMethod = null;
     this.matchedVersion = null;
 
-    this.transformers = new Map();
+    this._transformers = new Map();
   }
 
   getHeader(name, parse) {
@@ -38,7 +38,7 @@ export default class ServerRequest extends Readable {
   }
 
   getTransformer(name) {
-    return this.transformers.get(name);
+    return this._transformers.get(name);
   }
 
   setTransformer(name, transformer) {
@@ -46,25 +46,25 @@ export default class ServerRequest extends Readable {
       this.emit('error', new Error('400 ' + error.message));
     });
 
-    this.transformers.set(name, transformer);
+    this._transformers.set(name, transformer);
     return this;
   }
 
   hasTransformer(name) {
-    return this.transformers.has(name);
+    return this._transformers.has(name);
   }
 
   removeTransformer(name) {
-    this.transformers.delete(name);
+    this._transformers.delete(name);
   }
 
   clear() {
-    this.transformers.clear();
+    this._transformers.clear();
   }
 
   _read() {
     let i = 0;
-    const transformers = [...this.transformers.values()];
+    const transformers = [...this._transformers.values()];
 
     transformers.unshift(this.request);
 
