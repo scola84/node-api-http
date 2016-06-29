@@ -1,4 +1,5 @@
-import EventEmitter from '@scola/events';
+import EventEmitter from 'events';
+import { bind, unbind } from '@scola/bind';
 import ServerRequest from './server-request';
 import ServerResponse from './server-response';
 
@@ -18,13 +19,13 @@ export default class Connector extends EventEmitter {
   }
 
   _bindServer() {
-    this.bind(this._server, 'error', this._handleError);
-    this.bind(this._server, 'request', this._handleRequest);
+    bind(this, this._server, 'error', this._handleError);
+    bind(this, this._server, 'request', this._handleRequest);
   }
 
   _unbindServer() {
-    this.unbind(this._server, 'error', this._handleError);
-    this.unbind(this._server, 'request', this._handleRequest);
+    unbind(this, this._server, 'error', this._handleError);
+    unbind(this, this._server, 'request', this._handleRequest);
   }
 
   _handleError(error) {
