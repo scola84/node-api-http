@@ -8,7 +8,7 @@ export default class ServerRequest extends Readable {
       objectMode: true
     });
 
-    const parsedUrl = parseUrl(request.url);
+    const parsedUrl = parseUrl(request.url, true);
     const [path, version = ''] = parsedUrl.pathname.split('@');
 
     this.request = request;
