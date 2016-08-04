@@ -55,7 +55,7 @@ export default class ServerResponse extends EventEmitter {
 
   setTransformer(name, transformer) {
     transformer.once('error', (error) => {
-      this.emit('error', new Error('500 ' + error.message));
+      this.emit('error', new Error('500 invalid_response ' + error.message));
     });
 
     this._transformers.set(name, transformer);

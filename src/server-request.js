@@ -43,7 +43,7 @@ export default class ServerRequest extends Readable {
 
   setTransformer(name, transformer) {
     transformer.once('error', (error) => {
-      this.emit('error', new Error('400 ' + error.message));
+      this.emit('error', new Error('400 invalid_request ' + error.message));
     });
 
     this._transformers.set(name, transformer);
