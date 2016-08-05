@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
+import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
 export default class ServerRequest extends Readable {
@@ -43,7 +44,7 @@ export default class ServerRequest extends Readable {
 
   setTransformer(name, transformer) {
     transformer.once('error', (error) => {
-      this.emit('error', new Error('400 invalid_request ' + error.message));
+      this.emit('error', new ScolaError('400 invalid_request ' + error.message));
     });
 
     this._transformers.set(name, transformer);

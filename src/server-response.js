@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import { ScolaError } from '@scola/error';
 
 export default class ServerResponse extends EventEmitter {
   constructor(response) {
@@ -55,7 +56,8 @@ export default class ServerResponse extends EventEmitter {
 
   setTransformer(name, transformer) {
     transformer.once('error', (error) => {
-      this.emit('error', new Error('500 invalid_response ' + error.message));
+      this.emit('error', new ScolaError('500 invalid_response ' +
+        error.message));
     });
 
     this._transformers.set(name, transformer);
