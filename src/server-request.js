@@ -9,65 +9,137 @@ export default class ServerRequest extends Readable {
       objectMode: true
     });
 
-    const parsedUrl = parseUrl(request.url, true);
-    const [path, version = ''] = parsedUrl.pathname.split('@');
+    const url = parseUrl(request.url, true);
+    const [path, version = ''] = url.pathname.split('@');
 
-    this.request = request;
-    this.connection = this.request.connection;
+    this._request = request;
+    this._connection = this._request.connection;
 
-    this.method = this.request.method;
-    this.url = this.request.url;
-    this.headers = this.request.headers;
+    this._method = this._request.method;
+    this._url = this._request.url;
+    this._headers = this._request.headers;
 
-    this.path = path;
-    this.version = version;
-    this.query = parsedUrl.query;
-    this.params = {};
+    this._path = path;
+    this._version = version;
+    this._query = url.query;
+    this._params = {};
 
-    this.allowedMethods = [];
-
-    this.matchedPath = null;
-    this.matchedMethod = null;
-    this.matchedVersion = null;
+    this._methods = [];
+    this._match = {};
 
     this._transformers = new Map();
   }
 
-  getHeader(name, parse) {
-    const header = this.headers[name] || this.headers[name.toLowerCase()];
+  connection() {
+    return this._connection;
+  }
+
+  method() {
+    return this._method;
+  }
+
+  url() {
+    return this._url;
+  }
+
+  path() {
+    return this._path;
+  }
+
+  version() {
+    return this._version;
+  }
+
+  params(params) {
+    this._params = params;
+    return this;
+  }
+
+  param(name) {
+    if (typeof name === 'undefined') {
+      return this._params;
+    }
+
+    return this._params[name];
+  }
+
+  query(name) {
+    if (typeof name === 'undefined') {
+      return this._query;
+    }
+
+    return this._query[name];
+  }
+
+  allow(method, action) {
+    if (typeof action === 'undefined') {
+      return this._methods.indexOf(method) !== -1;
+    }
+
+    if (typeof method === 'undefined') {
+      return this._methods;
+    }
+
+    if (action === true) {
+      this._methods.push(method);
+    } else if (action === false) {
+      this._methods.splice(this._methods.indexOf(method), 1);
+    }
+
+    return this;
+  }
+
+  match(name, value) {
+    if (typeof value === 'undefined') {
+      return this._match[name];
+    }
+
+    if (typeof name === 'undefined') {
+      return this._match;
+    }
+
+    this._match[name] = value;
+    return this;
+  }
+
+  header(name, parse) {
+    const header = this._headers[name] || this._headers[name.toLowerCase()];
     return header && parse ? parseHeader(header) : header;
   }
 
-  getTransformer(name) {
-    return this._transformers.get(name);
-  }
+  transformer(name, transformer) {
+    if (typeof name === 'undefined') {
+      return this._transformers;
+    }
 
-  setTransformer(name, transformer) {
+    if (name === false) {
+      this._transformers.clear();
+      return this;
+    }
+
+    if (typeof transformer === 'undefined') {
+      return this._transformers.get(name);
+    }
+
+    if (transformer === false) {
+      this._transformers.delete(name);
+      return this;
+    }
+
     transformer.once('error', (error) => {
-      this.emit('error', new ScolaError('400 invalid_request ' + error.message));
+      this.emit('error', new ScolaError('400 invalid_request ' +
+        error.message));
     });
 
     this._transformers.set(name, transformer);
     return this;
   }
 
-  hasTransformer(name) {
-    return this._transformers.has(name);
-  }
-
-  removeTransformer(name) {
-    this._transformers.delete(name);
-  }
-
-  clear() {
-    this._transformers.clear();
-  }
-
   _read() {
     let i = 0;
     const transformers = [...this._transformers.values()];
 
-    transformers.unshift(this.request);
+    transformers.unshift(this._request);
 
     for (; i < transformers.length - 1; i += 1) {
       transformers[i].pipe(transformers[i + 1]);

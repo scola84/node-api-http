@@ -3,21 +3,31 @@ import ServerRequest from './server-request';
 import ServerResponse from './server-response';
 
 export default class Connector extends EventEmitter {
-  constructor(server, router) {
+  constructor() {
     super();
 
-    this._server = server;
-    this._router = router;
+    this._server = null;
+    this._router = null;
 
     this._handleError = (e) => this._error(e);
     this._handleRequest = (rq, rs) => this._request(rq, rs);
-
-    this._bindServer();
   }
 
-  close(callback) {
+  close() {
     this._unbindServer();
-    callback();
+    this._server.close();
+  }
+
+  server(server) {
+    this._server = server;
+    this._bindServer();
+
+    return this;
+  }
+
+  router(router) {
+    this._router = router;
+    return this;
   }
 
   _bindServer() {

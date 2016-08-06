@@ -10,51 +10,53 @@ export default class ServerResponse extends EventEmitter {
     this._first = null;
   }
 
-  get statusCode() {
-    return this._response.statusCode;
+  status(status) {
+    if (typeof status === 'undefined') {
+      return this._response.statusCode;
+    }
+
+    this._response.statusCode = status;
+    return this;
   }
 
-  set statusCode(code) {
-    this._response.statusCode = code;
+  header(name, value) {
+    if (typeof value === 'undefined') {
+      return this._response.getHeader(name);
+    }
+
+    if (typeof name === 'undefined') {
+      return this._response.headers;
+    }
+
+    if (value === false) {
+      this._response.removeHeader(name);
+      return this;
+    }
+
+    this._response.setHeader(name, value);
+    return this;
   }
 
-  get _header() {
-    return this._response._header;
-  }
+  transformer(name, transformer) {
+    if (typeof name === 'undefined') {
+      return this._transformers;
+    }
 
-  get _headers() {
-    return this._response._headers;
-  }
+    if (name === false) {
+      this._transformers.clear();
+      this._first = null;
+      return this;
+    }
 
-  get headersSent() {
-    return this._response.headersSent;
-  }
+    if (typeof transformer === 'undefined') {
+      return this._transformers.get(name);
+    }
 
-  get finished() {
-    return this._response.finished;
-  }
+    if (transformer === false) {
+      this._transformers.delete(name);
+      return this;
+    }
 
-  getHeader(...args) {
-    return this._response.getHeader(...args);
-  }
-
-  setHeader(...args) {
-    return this._response.setHeader(...args);
-  }
-
-  removeHeader(...args) {
-    return this._response.removeHeader(...args);
-  }
-
-  writeHead(...args) {
-    return this._response.writeHead(...args);
-  }
-
-  getTransformer(name) {
-    return this._transformers.get(name);
-  }
-
-  setTransformer(name, transformer) {
     transformer.once('error', (error) => {
       this.emit('error', new ScolaError('500 invalid_response ' +
         error.message));
@@ -64,25 +66,9 @@ export default class ServerResponse extends EventEmitter {
     return this;
   }
 
-  hasTransformer(name) {
-    return this._transformers.has(name);
-  }
-
-  removeTransformer(name) {
-    this._transformers.delete(name);
-  }
-
-  clear() {
-    this._transformers.clear();
-    this._first = null;
-  }
-
-  write(chunk, encoding, callback) {
-    this._transform().write(chunk, encoding, callback);
-  }
-
-  end(chunk, encoding, callback) {
-    this._transform().end(chunk, encoding, callback);
+  end(data, callback) {
+    this._transform().end(data, callback);
+    return this;
   }
 
   _transform() {
