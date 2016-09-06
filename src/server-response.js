@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from '@scola/events';
 import { ScolaError } from '@scola/error';
 
 export default class ServerResponse extends EventEmitter {
@@ -10,12 +10,12 @@ export default class ServerResponse extends EventEmitter {
     this._first = null;
   }
 
-  status(status) {
-    if (typeof status === 'undefined') {
+  status(value) {
+    if (typeof value === 'undefined') {
       return this._response.statusCode;
     }
 
-    this._response.statusCode = status;
+    this._response.statusCode = value;
     return this;
   }
 
@@ -37,7 +37,7 @@ export default class ServerResponse extends EventEmitter {
     return this;
   }
 
-  transformer(name, transformer) {
+  transformer(name, value) {
     if (typeof name === 'undefined') {
       return this._transformers;
     }
@@ -48,21 +48,21 @@ export default class ServerResponse extends EventEmitter {
       return this;
     }
 
-    if (typeof transformer === 'undefined') {
+    if (typeof value === 'undefined') {
       return this._transformers.get(name);
     }
 
-    if (transformer === false) {
+    if (value === false) {
       this._transformers.delete(name);
       return this;
     }
 
-    transformer.once('error', (error) => {
+    value.once('error', (error) => {
       this.emit('error', new ScolaError('500 invalid_response ' +
         error.message));
     });
 
-    this._transformers.set(name, transformer);
+    this._transformers.set(name, value);
     return this;
   }
 
@@ -77,7 +77,7 @@ export default class ServerResponse extends EventEmitter {
     }
 
     let i = 1;
-    const transformers = [...this._transformers.values()];
+    const transformers = Array.from(this._transformers.values());
 
     transformers.push(this._response);
 

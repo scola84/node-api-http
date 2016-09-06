@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from '@scola/events';
 import ServerRequest from './server-request';
 import ServerResponse from './server-response';
 
@@ -18,15 +18,15 @@ export default class Connector extends EventEmitter {
     this._server.close();
   }
 
-  server(server) {
-    this._server = server;
+  server(value) {
+    this._server = value;
     this._bindServer();
 
     return this;
   }
 
-  router(router) {
-    this._router = router;
+  router(value) {
+    this._router = value;
     return this;
   }
 

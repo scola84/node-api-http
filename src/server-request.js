@@ -50,16 +50,16 @@ export default class ServerRequest extends Readable {
     return this._version;
   }
 
-  params(params) {
-    this._params = params;
+  params(value) {
+    if (typeof value === 'undefined') {
+      return this._params;
+    }
+
+    this._params = value;
     return this;
   }
 
   param(name) {
-    if (typeof name === 'undefined') {
-      return this._params;
-    }
-
     return this._params[name];
   }
 
@@ -102,12 +102,16 @@ export default class ServerRequest extends Readable {
     return this;
   }
 
+  headers() {
+    return this._headers;
+  }
+
   header(name, parse) {
     const header = this._headers[name] || this._headers[name.toLowerCase()];
     return header && parse ? parseHeader(header) : header;
   }
 
-  transformer(name, transformer) {
+  transformer(name, value) {
     if (typeof name === 'undefined') {
       return this._transformers;
     }
@@ -117,27 +121,27 @@ export default class ServerRequest extends Readable {
       return this;
     }
 
-    if (typeof transformer === 'undefined') {
+    if (typeof value === 'undefined') {
       return this._transformers.get(name);
     }
 
-    if (transformer === false) {
+    if (value === false) {
       this._transformers.delete(name);
       return this;
     }
 
-    transformer.once('error', (error) => {
+    value.once('error', (error) => {
       this.emit('error', new ScolaError('400 invalid_request ' +
         error.message));
     });
 
-    this._transformers.set(name, transformer);
+    this._transformers.set(name, value);
     return this;
   }
 
   _read() {
     let i = 0;
-    const transformers = [...this._transformers.values()];
+    const transformers = Array.from(this._transformers.values());
 
     transformers.unshift(this._request);
 
