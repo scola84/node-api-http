@@ -83,7 +83,7 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  end(data, callback) {
+  end(data, callback = () => {}) {
     const codec = this._connection.codec();
 
     const Encoder = codec.Encoder;
@@ -103,16 +103,25 @@ export default class ClientRequest extends EventEmitter {
       path: this._path + (query ? '?' + query : ''),
       withCredentials: false
     }, (response) => {
-      if (callback) {
-        callback(this._response(response));
+      response = this._response(response);
+
+      if (response.status() > 0) {
+        request.removeAllListeners();
+        encoder.removeAllListeners();
       }
+
+      callback(response);
     });
 
     request.once('error', (error) => {
+      request.removeAllListeners();
+      encoder.removeAllListeners();
       this.emit('error', error);
     });
 
     encoder.once('error', (error) => {
+      request.removeAllListeners();
+      encoder.removeAllListeners();
       this.emit('error', error);
     });
 
