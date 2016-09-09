@@ -9,8 +9,9 @@ export default class ClientRequest extends EventEmitter {
     this._connection = null;
     this._codec = null;
     this._host = null;
-    this._method = null;
-    this._path = null;
+
+    this._method = 'GET';
+    this._path = '/';
     this._query = {};
     this._headers = {};
   }
@@ -91,7 +92,7 @@ export default class ClientRequest extends EventEmitter {
 
     const headers = Object.assign({}, this._headers);
 
-    if (data) {
+    if (this._method !== 'GET') {
       headers['Content-Type'] = codec.type;
     }
 

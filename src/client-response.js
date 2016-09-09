@@ -40,12 +40,16 @@ export default class ClientResponse extends Duplex {
 
     this._response = value;
 
-    const Decoder = this._codec.Decoder;
-    const decoder = new Decoder();
+    if (this.status() < 300) {
+      const Decoder = this._codec.Decoder;
+      const decoder = new Decoder();
 
-    this._response
-      .pipe(decoder)
-      .pipe(this);
+      this._response
+        .pipe(decoder)
+        .pipe(this);
+    } else {
+      this._response.pipe(this);
+    }
 
     return this;
   }
