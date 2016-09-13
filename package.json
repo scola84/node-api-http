@@ -7,14 +7,14 @@
   "license": "MIT",
   "main": "./dist/api-http.js",
   "jsnext:main": "index.js",
+  "dependencies": {
+    "@scola/error": "^4.0.0",
+    "@scola/events": "^3.0.0"
+  },
   "devDependencies": {
     "rollup": "^0.35.9"
   },
   "scripts": {
     "build": "rollup -i index.js -o ./dist/api-http.js -f cjs"
-  },
-  "dependencies": {
-    "@scola/error": "^4.0.0",
-    "@scola/events": "^3.0.0"
   }
 }
