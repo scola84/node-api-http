@@ -1,5 +1,5 @@
-import ClientRequest from './client-request';
 import { EventEmitter } from '@scola/events';
+import ClientRequest from './client-request';
 
 export default class Connection extends EventEmitter {
   constructor() {
