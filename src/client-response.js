@@ -1,5 +1,5 @@
 import { Duplex } from 'stream';
-import { parseHeader } from '@scola/api-http';
+import parseHeader from './helper/parse-header';
 
 export default class ClientResponse extends Duplex {
   constructor() {
