@@ -37,10 +37,20 @@ export default class Connection extends EventEmitter {
     return this;
   }
 
+  port(value) {
+    if (typeof value === 'undefined') {
+      return this._port;
+    }
+
+    this._port = value;
+    return this;
+  }
+
   request() {
     return new ClientRequest()
       .connection(this)
       .codec(this._codec)
-      .host(this._host);
+      .host(this._host)
+      .port(this._port);
   }
 }

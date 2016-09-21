@@ -9,6 +9,7 @@ export default class ClientRequest extends EventEmitter {
     this._connection = null;
     this._codec = null;
     this._host = null;
+    this._port = null;
 
     this._method = 'GET';
     this._path = '/';
@@ -40,6 +41,15 @@ export default class ClientRequest extends EventEmitter {
     }
 
     this._host = value;
+    return this;
+  }
+
+  port(value) {
+    if (typeof value === 'undefined') {
+      return this._port;
+    }
+
+    this._port = value;
     return this;
   }
 
@@ -102,6 +112,7 @@ export default class ClientRequest extends EventEmitter {
       headers,
       method: this._method,
       path: this._path + (query ? '?' + query : ''),
+      port: this._port,
       withCredentials: false
     }, (response) => {
       response = this._response(response);
