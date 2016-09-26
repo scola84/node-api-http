@@ -111,6 +111,25 @@ export default class ServerRequest extends Readable {
     return header && parse ? parseHeader(header) : header;
   }
 
+  address() {
+    let address = null;
+    let port = null;
+
+    if (this._headers['x-real-ip']) {
+      address = this._headers['x-real-ip'];
+      port = this._headers['x-real-port'];
+    } else {
+      const parsedAddress = this._connection.address();
+      address = parsedAddress.address;
+      port = parsedAddress.port;
+    }
+
+    return {
+      address,
+      port
+    };
+  }
+
   transformer(name, value) {
     if (typeof name === 'undefined') {
       return this._transformers;
