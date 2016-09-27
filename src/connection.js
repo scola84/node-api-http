@@ -1,7 +1,7 @@
 import { EventEmitter } from '@scola/events';
 import ClientRequest from './client-request';
 
-export default class Connection extends EventEmitter {
+export default class HttpConnection extends EventEmitter {
   constructor() {
     super();
 
