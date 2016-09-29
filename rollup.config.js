@@ -1,5 +1,4 @@
 import buble from 'rollup-plugin-buble';
-import resolve from 'rollup-plugin-node-resolve';
 
 export default {
   dest: './dist/api-http.js',
@@ -13,9 +12,6 @@ export default {
     'url'
   ],
   plugins: [
-    resolve({
-      jsnext: true
-    }),
     buble()
   ]
 };
