@@ -1,4 +1,4 @@
-import { EventEmitter } from '@scola/events';
+import { EventEmitter } from 'events';
 import ServerRequest from './server-request';
 import ServerResponse from './server-response';
 

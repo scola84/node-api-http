@@ -1,5 +1,5 @@
 import { stringify as formatQuery } from 'querystring';
-import { EventEmitter } from '@scola/events';
+import { EventEmitter } from 'events';
 import ClientResponse from './client-response';
 
 export default class ClientRequest extends EventEmitter {

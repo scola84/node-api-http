@@ -1,4 +1,4 @@
-import { EventEmitter } from '@scola/events';
+import { EventEmitter } from 'events';
 import { ScolaError } from '@scola/error';
 
 export default class ServerResponse extends EventEmitter {
