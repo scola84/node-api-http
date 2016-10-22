@@ -4,7 +4,7 @@ import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
 export default class ServerRequest extends Readable {
-  constructor(request) {
+  constructor(request, connection) {
     super({
       objectMode: true
     });
@@ -13,7 +13,7 @@ export default class ServerRequest extends Readable {
     const [path, version = ''] = url.pathname.split('@');
 
     this._request = request;
-    this._connection = this._request.connection;
+    this._connection = connection;
 
     this._method = this._request.method;
     this._url = this._request.url;

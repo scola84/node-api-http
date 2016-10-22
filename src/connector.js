@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import Connection from './connection';
 import ServerRequest from './server-request';
 import ServerResponse from './server-response';
 
@@ -44,7 +45,10 @@ export default class HttpConnector extends EventEmitter {
   }
 
   _request(request, response) {
-    request = new ServerRequest(request);
+    const connection = new Connection()
+      .socket(request.connection);
+
+    request = new ServerRequest(request, connection);
     response = new ServerResponse(response);
 
     this._router.handleRequest(request, response);

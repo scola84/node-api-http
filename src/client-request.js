@@ -101,9 +101,14 @@ export default class ClientRequest extends EventEmitter {
     const encoder = new Encoder();
 
     const headers = Object.assign({}, this._headers);
+    const user = this._connection.user();
 
     if (this._method !== 'GET') {
       headers['Content-Type'] = codec.type;
+    }
+
+    if (user) {
+      headers.Authorization = 'Bearer ' + user.token();
     }
 
     const query = formatQuery(this._query);

@@ -5,18 +5,13 @@ export default class HttpConnection extends EventEmitter {
   constructor() {
     super();
 
-    this._http = null;
     this._codec = null;
+    this._socket = null;
+    this._user = null;
+
+    this._http = null;
     this._host = null;
-  }
-
-  http(value) {
-    if (typeof value === 'undefined') {
-      return this._http;
-    }
-
-    this._http = value;
-    return this;
+    this._port = null;
   }
 
   codec(value) {
@@ -25,6 +20,33 @@ export default class HttpConnection extends EventEmitter {
     }
 
     this._codec = value;
+    return this;
+  }
+
+  socket(value) {
+    if (typeof value === 'undefined') {
+      return this._socket;
+    }
+
+    this._socket = value;
+    return this;
+  }
+
+  user(value) {
+    if (typeof value === 'undefined') {
+      return this._user;
+    }
+
+    this._user = value;
+    return this;
+  }
+
+  http(value) {
+    if (typeof value === 'undefined') {
+      return this._http;
+    }
+
+    this._http = value;
     return this;
   }
 
@@ -44,6 +66,10 @@ export default class HttpConnection extends EventEmitter {
 
     this._port = value;
     return this;
+  }
+
+  address() {
+    return this._socket.address();
   }
 
   request() {
