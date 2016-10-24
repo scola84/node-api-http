@@ -23,6 +23,7 @@ export default class ServerRequest extends Readable {
     this._version = version;
     this._query = url.query;
     this._params = {};
+    this._data = null;
 
     this._methods = [];
     this._match = {};
@@ -69,6 +70,15 @@ export default class ServerRequest extends Readable {
     }
 
     return this._query[name];
+  }
+
+  data(value) {
+    if (typeof value === 'undefined') {
+      return this._data;
+    }
+
+    this._data = value;
+    return this;
   }
 
   allow(method, action) {
