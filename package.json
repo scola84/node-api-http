@@ -8,12 +8,12 @@
   "main": "./dist/api-http.js",
   "jsnext:main": "index.js",
   "dependencies": {
-    "@scola/error": "^4.0.2"
+    "@scola/error": "^4.1.0"
   },
   "devDependencies": {
-    "rollup": "^0.36.1",
+    "rollup": "^0.36.3",
     "rollup-plugin-buble": "^0.14.0",
-    "uglify-js": "^2.7.3"
+    "uglify-js": "^2.7.4"
   },
   "scripts": {
     "build": "npm run cleanup && npm run rollup",
