@@ -1,4 +1,4 @@
-import stringify from 'qs/lib/stringify';
+import formatQuery from 'qs/lib/stringify';
 import { EventEmitter } from 'events';
 import ClientResponse from './client-response';
 
@@ -111,7 +111,7 @@ export default class ClientRequest extends EventEmitter {
       headers.Authorization = 'Bearer ' + user.token();
     }
 
-    const query = stringify(this._query);
+    const query = formatQuery(this._query);
     const request = this._connection.http().request({
       host: this._host,
       headers,
