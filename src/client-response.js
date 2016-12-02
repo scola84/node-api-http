@@ -13,6 +13,7 @@ export default class ClientResponse extends Duplex {
 
     this._status = null;
     this._headers = {};
+    this._data = null;
   }
 
   connection(value) {
@@ -61,6 +62,15 @@ export default class ClientResponse extends Duplex {
   header(name, parse) {
     const header = this._response.headers[name.toLowerCase()];
     return header && parse ? parseHeader(header) : header;
+  }
+
+  data(value = null) {
+    if (value === null) {
+      return this._data;
+    }
+
+    this._data = value;
+    return this;
   }
 
   _write(data) {

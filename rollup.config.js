@@ -8,6 +8,7 @@ export default {
     '@scola/error',
     'events',
     'querystring',
+    'qs',
     'stream',
     'url'
   ],

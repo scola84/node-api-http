@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
+import parseQuery from 'qs/lib/parse';
 import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
@@ -9,7 +10,7 @@ export default class ServerRequest extends Readable {
       objectMode: true
     });
 
-    const url = parseUrl(request.url, true);
+    const url = parseUrl(request.url);
     const [path, version = ''] = url.pathname.split('@');
 
     this._request = request;
@@ -21,7 +22,7 @@ export default class ServerRequest extends Readable {
 
     this._path = path;
     this._version = version;
-    this._query = url.query;
+    this._query = parseQuery(url.query);
     this._params = {};
     this._data = null;
 
@@ -178,8 +179,13 @@ export default class ServerRequest extends Readable {
       transformers[i].pipe(transformers[i + 1]);
     }
 
-    transformers.pop().once('data', (object) => {
+    const last = transformers.pop();
+
+    last.on('data', (object) => {
       this.push(object);
+    });
+
+    last.once('end', () => {
       this.push(null);
     });
   }
