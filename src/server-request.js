@@ -1,7 +1,7 @@
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import parseQuery from 'qs/lib/parse';
-import { ScolaError } from '@scola/error';
+import { ScolaError } from '@scola/core';
 import parseHeader from './helper/parse-header';
 
 export default class ServerRequest extends Readable {

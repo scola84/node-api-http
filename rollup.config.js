@@ -5,7 +5,7 @@ export default {
   entry: 'index.js',
   format: 'cjs',
   external: [
-    '@scola/error',
+    '@scola/core',
     'events',
     'qs/lib/parse',
     'qs/lib/stringify',
