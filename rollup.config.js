@@ -7,8 +7,8 @@ export default {
   external: [
     '@scola/error',
     'events',
-    'querystring',
-    'qs',
+    'qs/lib/parse',
+    'qs/lib/stringify',
     'stream',
     'url'
   ],
