@@ -8,7 +8,7 @@
   "main": "./dist/api-http.js",
   "jsnext:main": "index.js",
   "dependencies": {
-    "@scola/core": "^1.1.0",
+    "@scola/core": "^1.2.0",
     "qs": "^6.3.0"
   }
 }
