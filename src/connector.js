@@ -18,26 +18,38 @@ export default class HttpConnector extends EventEmitter {
     this._unbindServer();
   }
 
-  server(value) {
+  server(value = null) {
+    if (value === null) {
+      return this._server;
+    }
+
     this._server = value;
     this._bindServer();
 
     return this;
   }
 
-  router(value) {
+  router(value = null) {
+    if (value === null) {
+      return this._router;
+    }
+
     this._router = value;
     return this;
   }
 
   _bindServer() {
-    this._server.addListener('error', this._handleError);
-    this._server.addListener('request', this._handleRequest);
+    if (this._server) {
+      this._server.addListener('error', this._handleError);
+      this._server.addListener('request', this._handleRequest);
+    }
   }
 
   _unbindServer() {
-    this._server.removeListener('error', this._handleError);
-    this._server.removeListener('request', this._handleRequest);
+    if (this._server) {
+      this._server.removeListener('error', this._handleError);
+      this._server.removeListener('request', this._handleRequest);
+    }
   }
 
   _error(error) {
@@ -48,8 +60,12 @@ export default class HttpConnector extends EventEmitter {
     const connection = new Connection()
       .socket(request.connection);
 
-    request = new ServerRequest(request, connection);
-    response = new ServerResponse(response);
+    request = new ServerRequest()
+      .connection(connection)
+      .request(request);
+
+    response = new ServerResponse()
+      .response(response);
 
     this._router.handleRequest(request, response);
   }

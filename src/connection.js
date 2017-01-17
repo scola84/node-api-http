@@ -5,26 +5,16 @@ export default class HttpConnection extends EventEmitter {
   constructor() {
     super();
 
-    this._codec = null;
     this._socket = null;
-    this._user = null;
-
     this._http = null;
+    this._codec = null;
+    this._user = null;
     this._host = null;
     this._port = null;
   }
 
-  codec(value) {
-    if (typeof value === 'undefined') {
-      return this._codec;
-    }
-
-    this._codec = value;
-    return this;
-  }
-
-  socket(value) {
-    if (typeof value === 'undefined') {
+  socket(value = null) {
+    if (value === null) {
       return this._socket;
     }
 
@@ -32,17 +22,8 @@ export default class HttpConnection extends EventEmitter {
     return this;
   }
 
-  user(value) {
-    if (typeof value === 'undefined') {
-      return this._user;
-    }
-
-    this._user = value;
-    return this;
-  }
-
-  http(value) {
-    if (typeof value === 'undefined') {
+  http(value = null) {
+    if (value === null) {
       return this._http;
     }
 
@@ -50,8 +31,26 @@ export default class HttpConnection extends EventEmitter {
     return this;
   }
 
-  host(value) {
-    if (typeof value === 'undefined') {
+  codec(value = null) {
+    if (value === null) {
+      return this._codec;
+    }
+
+    this._codec = value;
+    return this;
+  }
+
+  user(value = null) {
+    if (value === null) {
+      return this._user;
+    }
+
+    this._user = value;
+    return this;
+  }
+
+  host(value = null) {
+    if (value === null) {
       return this._host;
     }
 
@@ -59,8 +58,8 @@ export default class HttpConnection extends EventEmitter {
     return this;
   }
 
-  port(value) {
-    if (typeof value === 'undefined') {
+  port(value = null) {
+    if (value === null) {
       return this._port;
     }
 
@@ -75,7 +74,6 @@ export default class HttpConnection extends EventEmitter {
   request() {
     return new ClientRequest()
       .connection(this)
-      .codec(this._codec)
       .host(this._host)
       .port(this._port);
   }

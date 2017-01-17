@@ -1,17 +1,26 @@
 import { EventEmitter } from 'events';
-import { ScolaError } from '@scola/core';
+import { ScolaError } from '@scola/error';
 
 export default class ServerResponse extends EventEmitter {
-  constructor(response) {
+  constructor() {
     super();
 
-    this._response = response;
+    this._response = null;
     this._transformers = new Map();
     this._first = null;
   }
 
-  status(value) {
-    if (typeof value === 'undefined') {
+  response(value = null) {
+    if (value === null) {
+      return this._response;
+    }
+
+    this._response = value;
+    return this;
+  }
+
+  status(value = null) {
+    if (value === null) {
       return this._response.statusCode;
     }
 
@@ -19,13 +28,13 @@ export default class ServerResponse extends EventEmitter {
     return this;
   }
 
-  header(name, value) {
-    if (typeof value === 'undefined') {
-      return this._response.getHeader(name);
+  header(name = null, value = null) {
+    if (name === null) {
+      return this._response.headers;
     }
 
-    if (typeof name === 'undefined') {
-      return this._response.headers;
+    if (value === null) {
+      return this._response.getHeader(name);
     }
 
     if (value === false) {
@@ -37,8 +46,8 @@ export default class ServerResponse extends EventEmitter {
     return this;
   }
 
-  transformer(name, value) {
-    if (typeof name === 'undefined') {
+  transformer(name = null, value = null) {
+    if (name === null) {
       return this._transformers;
     }
 
@@ -48,7 +57,7 @@ export default class ServerResponse extends EventEmitter {
       return this;
     }
 
-    if (typeof value === 'undefined') {
+    if (value === null) {
       return this._transformers.get(name);
     }
 
@@ -58,6 +67,7 @@ export default class ServerResponse extends EventEmitter {
     }
 
     value.once('error', (error) => {
+      this._removeAllListeners();
       this.emit('error', new ScolaError('500 invalid_response ' +
         error.message));
     });
@@ -87,5 +97,11 @@ export default class ServerResponse extends EventEmitter {
 
     this._first = transformers[0];
     return this._first;
+  }
+
+  _removeAllListeners() {
+    this._transformers.forEach((transformer) => {
+      transformer.removeAllListeners();
+    });
   }
 }

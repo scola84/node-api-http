@@ -7,18 +7,16 @@ export default class ClientRequest extends EventEmitter {
     super();
 
     this._connection = null;
-    this._codec = null;
     this._host = null;
     this._port = null;
-
     this._method = 'GET';
     this._path = '/';
     this._query = {};
     this._headers = {};
   }
 
-  connection(value) {
-    if (typeof value === 'undefined') {
+  connection(value = null) {
+    if (value === null) {
       return this._connection;
     }
 
@@ -26,17 +24,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  codec(value) {
-    if (typeof value === 'undefined') {
-      return this._codec;
-    }
-
-    this._codec = value;
-    return this;
-  }
-
-  host(value) {
-    if (typeof value === 'undefined') {
+  host(value = null) {
+    if (value === null) {
       return this._host;
     }
 
@@ -44,8 +33,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  port(value) {
-    if (typeof value === 'undefined') {
+  port(value = null) {
+    if (value === null) {
       return this._port;
     }
 
@@ -53,8 +42,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  method(value) {
-    if (typeof value === 'undefined') {
+  method(value = null) {
+    if (value === null) {
       return this._method;
     }
 
@@ -62,8 +51,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  path(value) {
-    if (typeof value === 'undefined') {
+  path(value = null) {
+    if (value === null) {
       return this._path;
     }
 
@@ -71,8 +60,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  query(value) {
-    if (typeof value === 'undefined') {
+  query(value = null) {
+    if (value === null) {
       return this._query;
     }
 
@@ -80,8 +69,8 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  header(name, value) {
-    if (typeof value === 'undefined') {
+  header(name, value = null) {
+    if (value === null) {
       return this._headers[name];
     }
 
@@ -94,17 +83,12 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  end(data, callback = () => {}) {
-    const codec = this._connection.codec();
-
-    const Encoder = codec.Encoder;
-    const encoder = new Encoder();
-
-    const headers = Object.assign({}, this._headers);
+  end(data = null, callback = () => {}) {
     const user = this._connection.user();
+    const headers = Object.assign({}, this._headers);
 
     if (this._method !== 'GET') {
-      headers['Content-Type'] = codec.type;
+      headers['Content-Type'] = this._codec.type;
     }
 
     if (user) {
@@ -124,7 +108,6 @@ export default class ClientRequest extends EventEmitter {
 
       if (response.status() > 0) {
         request.removeAllListeners();
-        encoder.removeAllListeners();
       }
 
       callback(response);
@@ -132,9 +115,17 @@ export default class ClientRequest extends EventEmitter {
 
     request.once('error', (error) => {
       request.removeAllListeners();
-      encoder.removeAllListeners();
       this.emit('error', error);
     });
+
+    if (data === null) {
+      request.end();
+      return this;
+    }
+
+    const encoder = this._connection
+      .codec()
+      .encoder();
 
     encoder.once('error', (error) => {
       request.removeAllListeners();
@@ -143,6 +134,7 @@ export default class ClientRequest extends EventEmitter {
     });
 
     encoder.once('data', (encodedData) => {
+      encoder.removeAllListeners();
       request.end(encodedData);
     });
 
@@ -153,7 +145,6 @@ export default class ClientRequest extends EventEmitter {
   _response(response) {
     return new ClientResponse()
       .connection(this._connection)
-      .codec(this._codec)
       .response(response);
   }
 }

@@ -1,28 +1,24 @@
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import parseQuery from 'qs/lib/parse';
-import { ScolaError } from '@scola/core';
+import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
 export default class ServerRequest extends Readable {
-  constructor(request, connection) {
+  constructor() {
     super({
       objectMode: true
     });
 
-    const url = parseUrl(request.url);
-    const [path, version = ''] = url.pathname.split('@');
+    this._connection = null;
+    this._request = null;
 
-    this._request = request;
-    this._connection = connection;
-
-    this._method = this._request.method;
-    this._url = this._request.url;
-    this._headers = this._request.headers;
-
-    this._path = path;
-    this._version = version;
-    this._query = parseQuery(url.query);
+    this._method = null;
+    this._url = null;
+    this._headers = null;
+    this._path = null;
+    this._version = null;
+    this._query = {};
     this._params = {};
     this._data = null;
 
@@ -32,28 +28,90 @@ export default class ServerRequest extends Readable {
     this._transformers = new Map();
   }
 
-  connection() {
-    return this._connection;
+  connection(value = null) {
+    if (value === null) {
+      return this._connection;
+    }
+
+    this._connection = value;
+    return this;
   }
 
-  method() {
-    return this._method;
+  request(value = null) {
+    if (value === null) {
+      return this._request;
+    }
+
+    this._request = value;
+
+    this.method(this._request.method);
+    this.url(this._request.url);
+    this.headers(this._request.headers);
+
+    return this;
   }
 
-  url() {
-    return this._url;
+  method(value = null) {
+    if (value === null) {
+      return this._method;
+    }
+
+    this._method = value;
+    return this;
   }
 
-  path() {
-    return this._path;
+  url(value = null) {
+    if (value === null) {
+      return this._url;
+    }
+
+    const parsedUrl = parseUrl(value);
+
+    this._url = value;
+    this._query = parseQuery(parsedUrl.query);
+
+    const [path, version = ''] = parsedUrl.pathname.split('@');
+
+    this.path(path);
+    this.version(version);
+
+    return this;
   }
 
-  version() {
-    return this._version;
+  headers(value = null) {
+    if (value === null) {
+      return this._headers;
+    }
+
+    this._headers = value;
+    return this;
   }
 
-  params(value) {
-    if (typeof value === 'undefined') {
+  header(name, parse = false) {
+    const header = this._headers[name] || this._headers[name.toLowerCase()];
+    return header && parse ? parseHeader(header) : header;
+  }
+
+  path(value = null) {
+    if (value === null) {
+      return this._path;
+    }
+
+    this._path = value;
+    return this;
+  }
+
+  version(value = null) {
+    if (value === null) {
+      return this._version;
+    }
+
+    this._version = value;
+    return this;
+  }
+
+  params(value = null) {
+    if (value === null) {
       return this._params;
     }
 
@@ -65,16 +123,16 @@ export default class ServerRequest extends Readable {
     return this._params[name];
   }
 
-  query(name) {
-    if (typeof name === 'undefined') {
+  query(name = null) {
+    if (name === null) {
       return this._query;
     }
 
     return this._query[name];
   }
 
-  data(value) {
-    if (typeof value === 'undefined') {
+  data(value = null) {
+    if (value === null) {
       return this._data;
     }
 
@@ -82,13 +140,13 @@ export default class ServerRequest extends Readable {
     return this;
   }
 
-  allow(method, action) {
-    if (typeof action === 'undefined') {
-      return this._methods.indexOf(method) !== -1;
+  allow(method = null, action = null) {
+    if (method === null) {
+      return this._methods;
     }
 
-    if (typeof method === 'undefined') {
-      return this._methods;
+    if (action === null) {
+      return this._methods.indexOf(method) !== -1;
     }
 
     if (action === true) {
@@ -100,26 +158,17 @@ export default class ServerRequest extends Readable {
     return this;
   }
 
-  match(name, value) {
-    if (typeof value === 'undefined') {
-      return this._match[name];
+  match(name = null, value = null) {
+    if (name === null) {
+      return this._match;
     }
 
-    if (typeof name === 'undefined') {
-      return this._match;
+    if (value === null) {
+      return this._match[name];
     }
 
     this._match[name] = value;
     return this;
-  }
-
-  headers() {
-    return this._headers;
-  }
-
-  header(name, parse) {
-    const header = this._headers[name] || this._headers[name.toLowerCase()];
-    return header && parse ? parseHeader(header) : header;
   }
 
   address() {
@@ -141,8 +190,8 @@ export default class ServerRequest extends Readable {
     };
   }
 
-  transformer(name, value) {
-    if (typeof name === 'undefined') {
+  transformer(name = null, value = null) {
+    if (name === null) {
       return this._transformers;
     }
 
@@ -151,7 +200,7 @@ export default class ServerRequest extends Readable {
       return this;
     }
 
-    if (typeof value === 'undefined') {
+    if (value === null) {
       return this._transformers.get(name);
     }
 
@@ -161,6 +210,7 @@ export default class ServerRequest extends Readable {
     }
 
     value.once('error', (error) => {
+      this._removeAllListeners();
       this.emit('error', new ScolaError('400 invalid_request ' +
         error.message));
     });
@@ -186,7 +236,14 @@ export default class ServerRequest extends Readable {
     });
 
     last.once('end', () => {
+      this._removeAllListeners();
       this.push(null);
+    });
+  }
+
+  _removeAllListeners() {
+    this._transformers.forEach((transformer) => {
+      transformer.removeAllListeners();
     });
   }
 }

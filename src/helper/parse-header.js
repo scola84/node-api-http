@@ -1,8 +1,4 @@
-export default function (header) {
-  if (!header) {
-    return header;
-  }
-
+export default function parseHeader(header = '') {
   const regexp = /([^\s,;=]+)=(?:([\'"])([^\2]+?)\2|([^\s,;=]+))/;
   const match = header.match(new RegExp(regexp.source, 'g')) || [];
 

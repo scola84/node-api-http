@@ -5,10 +5,10 @@
   "repository": "github:scola84/node-api-http",
   "author": "M.C. van den Boogaart <scola@kvdb.name>",
   "license": "MIT",
-  "main": "./dist/api-http.js",
+  "main": "index.js",
   "jsnext:main": "index.js",
   "dependencies": {
-    "@scola/core": "^1.2.0",
+    "@scola/error": "^4.3.0",
     "qs": "^6.3.0"
   }
 }

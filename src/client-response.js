@@ -8,16 +8,14 @@ export default class ClientResponse extends Duplex {
     });
 
     this._connection = null;
-    this._codec = null;
     this._response = null;
-
     this._status = null;
     this._headers = {};
     this._data = null;
   }
 
-  connection(value) {
-    if (typeof value === 'undefined') {
+  connection(value = null) {
+    if (value === null) {
       return this._connection;
     }
 
@@ -25,25 +23,17 @@ export default class ClientResponse extends Duplex {
     return this;
   }
 
-  codec(value) {
-    if (typeof value === 'undefined') {
-      return this._codec;
-    }
-
-    this._codec = value;
-    return this;
-  }
-
-  response(value) {
-    if (typeof value === 'undefined') {
+  response(value = null) {
+    if (value === null) {
       return this._response;
     }
 
     this._response = value;
 
     if (this.status() < 300) {
-      const Decoder = this._codec.Decoder;
-      const decoder = new Decoder();
+      const decoder = this._connection
+        .codec()
+        .decoder();
 
       this._response
         .pipe(decoder)
@@ -59,7 +49,7 @@ export default class ClientResponse extends Duplex {
     return this._response.statusCode;
   }
 
-  header(name, parse) {
+  header(name, parse = false) {
     const header = this._response.headers[name.toLowerCase()];
     return header && parse ? parseHeader(header) : header;
   }
