@@ -1,10 +1,9 @@
-import { Readable } from 'stream';
+import { Duplex } from 'stream';
 import { parse as parseUrl } from 'url';
 import parseQuery from 'qs/lib/parse';
-import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
-export default class ServerRequest extends Readable {
+export default class ServerRequest extends Duplex {
   constructor() {
     super({
       objectMode: true
@@ -12,6 +11,7 @@ export default class ServerRequest extends Readable {
 
     this._connection = null;
     this._request = null;
+    this._codec = null;
 
     this._method = null;
     this._url = null;
@@ -24,8 +24,6 @@ export default class ServerRequest extends Readable {
 
     this._methods = [];
     this._match = {};
-
-    this._transformers = new Map();
   }
 
   connection(value = null) {
@@ -48,6 +46,17 @@ export default class ServerRequest extends Readable {
     this.url(this._request.url);
     this.headers(this._request.headers);
 
+    value.pipe(this);
+
+    return this;
+  }
+
+  codec(value = null) {
+    if (value === null) {
+      return this._codec;
+    }
+
+    this._codec = value;
     return this;
   }
 
@@ -88,7 +97,9 @@ export default class ServerRequest extends Readable {
   }
 
   header(name, parse = false) {
-    const header = this._headers[name] || this._headers[name.toLowerCase()];
+    const header = this._headers[name] ||
+      this._headers[name.toLowerCase()];
+
     return header && parse ? parseHeader(header) : header;
   }
 
@@ -171,6 +182,12 @@ export default class ServerRequest extends Readable {
     return this;
   }
 
+  decoder(writer) {
+    return this._codec &&
+      this._codec.decoder(writer, this._connection, this) ||
+      writer;
+  }
+
   address() {
     let address = null;
     let port = null;
@@ -190,60 +207,14 @@ export default class ServerRequest extends Readable {
     };
   }
 
-  transformer(name = null, value = null) {
-    if (name === null) {
-      return this._transformers;
-    }
-
-    if (name === false) {
-      this._transformers.clear();
-      return this;
-    }
-
-    if (value === null) {
-      return this._transformers.get(name);
-    }
-
-    if (value === false) {
-      this._transformers.delete(name);
-      return this;
-    }
-
-    value.once('error', (error) => {
-      this._removeAllListeners();
-      this.emit('error', new ScolaError('400 invalid_request ' +
-        error.message));
-    });
-
-    this._transformers.set(name, value);
-    return this;
-  }
-
   _read() {
-    let i = 0;
-    const transformers = Array.from(this._transformers.values());
+    console.log('_read');
 
-    transformers.unshift(this._request);
-
-    for (; i < transformers.length - 1; i += 1) {
-      transformers[i].pipe(transformers[i + 1]);
-    }
-
-    const last = transformers.pop();
-
-    last.on('data', (object) => {
-      this.push(object);
-    });
-
-    last.once('end', () => {
-      this._removeAllListeners();
-      this.push(null);
-    });
   }
 
-  _removeAllListeners() {
-    this._transformers.forEach((transformer) => {
-      transformer.removeAllListeners();
-    });
+  _write(data, encoding, callback) {
+    console.log('_write', data);
+    this.push(data);
+    callback();
   }
 }

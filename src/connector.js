@@ -65,6 +65,7 @@ export default class HttpConnector extends EventEmitter {
       .request(request);
 
     response = new ServerResponse()
+      .connection(connection)
       .response(response);
 
     this._router.handleRequest(request, response);

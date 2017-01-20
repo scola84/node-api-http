@@ -9,7 +9,7 @@ export default class ClientResponse extends Duplex {
 
     this._connection = null;
     this._response = null;
-    this._status = null;
+    this._decoder = null;
     this._headers = {};
     this._data = null;
   }
@@ -29,19 +29,6 @@ export default class ClientResponse extends Duplex {
     }
 
     this._response = value;
-
-    if (this.status() < 300) {
-      const decoder = this._connection
-        .codec()
-        .decoder();
-
-      this._response
-        .pipe(decoder)
-        .pipe(this);
-    } else {
-      this._response.pipe(this);
-    }
-
     return this;
   }
 
@@ -63,10 +50,15 @@ export default class ClientResponse extends Duplex {
     return this;
   }
 
-  _write(data) {
-    this.push(data);
-    this.push(null);
+  _read() {
+    if (!this._decoder) {
+      this._decoder = this._connection.decoder(this._response);
+      this._decoder.pipe(this);
+    }
   }
 
-  _read() {}
+  _write(data, encoding, callback) {
+    this.push(data);
+    callback();
+  }
 }

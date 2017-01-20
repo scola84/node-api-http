@@ -1,13 +1,30 @@
-import { EventEmitter } from 'events';
-import { ScolaError } from '@scola/error';
+import { Writable } from 'stream';
+import Writer from './helper/writer';
 
-export default class ServerResponse extends EventEmitter {
+export default class ServerResponse extends Writable {
   constructor() {
-    super();
+    super({
+      objectMode: true
+    });
 
+    this._connection = null;
     this._response = null;
-    this._transformers = new Map();
-    this._first = null;
+    this._codec = null;
+    this._writer = null;
+    this._encoder = null;
+
+    this.once('finish', () => {
+      this._response.end();
+    });
+  }
+
+  connection(value = null) {
+    if (value === null) {
+      return this._connection;
+    }
+
+    this._connection = value;
+    return this;
   }
 
   response(value = null) {
@@ -16,6 +33,15 @@ export default class ServerResponse extends EventEmitter {
     }
 
     this._response = value;
+    return this;
+  }
+
+  codec(value = null) {
+    if (value === null) {
+      return this._codec;
+    }
+
+    this._codec = value;
     return this;
   }
 
@@ -46,62 +72,25 @@ export default class ServerResponse extends EventEmitter {
     return this;
   }
 
-  transformer(name = null, value = null) {
-    if (name === null) {
-      return this._transformers;
-    }
-
-    if (name === false) {
-      this._transformers.clear();
-      this._first = null;
-      return this;
-    }
-
-    if (value === null) {
-      return this._transformers.get(name);
-    }
-
-    if (value === false) {
-      this._transformers.delete(name);
-      return this;
-    }
-
-    value.once('error', (error) => {
-      this._removeAllListeners();
-      this.emit('error', new ScolaError('500 invalid_response ' +
-        error.message));
-    });
-
-    this._transformers.set(name, value);
-    return this;
+  encoder(writer) {
+    return this._codec &&
+      this._codec.encoder(writer, this._connection) ||
+      writer;
   }
 
-  end(data, callback) {
-    this._transform().end(data, callback);
-    return this;
+  _write(data, encoding, callback) {
+    this._instance().write(data, encoding, callback);
   }
 
-  _transform() {
-    if (this._first) {
-      return this._first;
+  _instance() {
+    if (this._writer) {
+      return this._writer;
     }
 
-    let i = 1;
-    const transformers = Array.from(this._transformers.values());
+    this._writer = new Writer();
+    this._encoder = this.encoder(this._writer);
+    this._encoder.pipe(this._response);
 
-    transformers.push(this._response);
-
-    for (; i < transformers.length; i += 1) {
-      transformers[i - 1].pipe(transformers[i]);
-    }
-
-    this._first = transformers[0];
-    return this._first;
-  }
-
-  _removeAllListeners() {
-    this._transformers.forEach((transformer) => {
-      transformer.removeAllListeners();
-    });
+    return this._writer;
   }
 }

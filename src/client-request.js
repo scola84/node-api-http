@@ -1,18 +1,27 @@
 import formatQuery from 'qs/lib/stringify';
-import { EventEmitter } from 'events';
+import { Writable } from 'stream';
 import ClientResponse from './client-response';
+import Writer from './helper/writer';
 
-export default class ClientRequest extends EventEmitter {
+export default class ClientRequest extends Writable {
   constructor() {
     super();
 
     this._connection = null;
+    this._writer = null;
+    this._encoder = null;
+
     this._host = null;
     this._port = null;
     this._method = 'GET';
     this._path = '/';
     this._query = {};
     this._headers = {};
+
+    this.once('finish', () => {
+      console.log('finished');
+      this._request.end();
+    });
   }
 
   connection(value = null) {
@@ -83,7 +92,16 @@ export default class ClientRequest extends EventEmitter {
     return this;
   }
 
-  end(data = null, callback = () => {}) {
+  _write(data, encoding, callback) {
+    console.log('write', data);
+    this._instance().write(data, encoding, callback);
+  }
+
+  _instance() {
+    if (this._writer) {
+      return this._writer;
+    }
+
     const user = this._connection.user();
     const headers = Object.assign({}, this._headers);
 
@@ -103,46 +121,29 @@ export default class ClientRequest extends EventEmitter {
       path: this._path + (query ? '?' + query : ''),
       port: this._port,
       withCredentials: false
-    }, (response) => {
-      response = this._response(response);
-
-      if (response.status() > 0) {
-        request.removeAllListeners();
-      }
-
-      callback(response);
     });
+
+    this._request = request;
+
+    console.log('trying');
 
     request.once('error', (error) => {
-      request.removeAllListeners();
       this.emit('error', error);
     });
 
-    if (data === null) {
-      request.end();
-      return this;
-    }
-
-    const encoder = this._connection
-      .codec()
-      .encoder();
-
-    encoder.once('error', (error) => {
-      request.removeAllListeners();
-      encoder.removeAllListeners();
-      this.emit('error', error);
+    request.once('response', (response) => {
+      console.log('response');
+      this.emit('response', this._createResponse(response));
     });
 
-    encoder.once('data', (encodedData) => {
-      encoder.removeAllListeners();
-      request.end(encodedData);
-    });
+    this._writer = new Writer();
+    this._encoder = this._connection.encoder(this._writer);
+    this._encoder.pipe(request);
 
-    encoder.end(data);
-    return this;
+    return this._writer;
   }
 
-  _response(response) {
+  _createResponse(response) {
     return new ClientResponse()
       .connection(this._connection)
       .response(response);
