@@ -18,6 +18,16 @@ export default class ServerResponse extends Writable {
     });
   }
 
+  destroy(error) {
+    if (this._writer) {
+      this._writer.end();
+    }
+
+    if (error) {
+      this.emit('error', error);
+    }
+  }
+
   connection(value = null) {
     if (value === null) {
       return this._connection;

@@ -1,7 +1,7 @@
-import { Duplex } from 'stream';
+import { Readable } from 'stream';
 import parseHeader from './helper/parse-header';
 
-export default class ClientResponse extends Duplex {
+export default class ClientResponse extends Readable {
   constructor() {
     super({
       objectMode: true
@@ -52,13 +52,21 @@ export default class ClientResponse extends Duplex {
 
   _read() {
     if (!this._decoder) {
-      this._decoder = this._connection.decoder(this._response);
-      this._decoder.pipe(this);
+      this._decoder = this._instance();
     }
   }
 
-  _write(data, encoding, callback) {
-    this.push(data);
-    callback();
+  _instance() {
+    const decoder = this._connection.decoder(this._response);
+
+    decoder.on('data', (data) => {
+      this.push(data);
+    });
+
+    decoder.once('end', () => {
+      this.push(null);
+    });
+
+    return decoder;
   }
 }

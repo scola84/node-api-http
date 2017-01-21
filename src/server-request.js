@@ -1,9 +1,9 @@
-import { Duplex } from 'stream';
+import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import parseQuery from 'qs/lib/parse';
 import parseHeader from './helper/parse-header';
 
-export default class ServerRequest extends Duplex {
+export default class ServerRequest extends Readable {
   constructor() {
     super({
       objectMode: true
@@ -12,6 +12,7 @@ export default class ServerRequest extends Duplex {
     this._connection = null;
     this._request = null;
     this._codec = null;
+    this._decoder = null;
 
     this._method = null;
     this._url = null;
@@ -24,6 +25,17 @@ export default class ServerRequest extends Duplex {
 
     this._methods = [];
     this._match = {};
+  }
+
+  destroy(error) {
+    if (this._decoder) {
+      this._decoder.removeAllListeners();
+      this._decoder.end();
+    }
+
+    if (error) {
+      this.emit('error', error);
+    }
   }
 
   connection(value = null) {
@@ -45,8 +57,6 @@ export default class ServerRequest extends Duplex {
     this.method(this._request.method);
     this.url(this._request.url);
     this.headers(this._request.headers);
-
-    value.pipe(this);
 
     return this;
   }
@@ -208,13 +218,22 @@ export default class ServerRequest extends Duplex {
   }
 
   _read() {
-    console.log('_read');
-
+    if (!this._decoder) {
+      this._decoder = this._instance();
+    }
   }
 
-  _write(data, encoding, callback) {
-    console.log('_write', data);
-    this.push(data);
-    callback();
+  _instance() {
+    const decoder = this.decoder(this._request);
+
+    decoder.on('data', (data) => {
+      this.push(data);
+    });
+
+    decoder.once('end', () => {
+      this.push(null);
+    });
+
+    return decoder;
   }
 }

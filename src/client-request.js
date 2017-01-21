@@ -5,7 +5,9 @@ import Writer from './helper/writer';
 
 export default class ClientRequest extends Writable {
   constructor() {
-    super();
+    super({
+      objectMode: true
+    });
 
     this._connection = null;
     this._writer = null;
@@ -19,7 +21,6 @@ export default class ClientRequest extends Writable {
     this._headers = {};
 
     this.once('finish', () => {
-      console.log('finished');
       this._request.end();
     });
   }
@@ -93,7 +94,6 @@ export default class ClientRequest extends Writable {
   }
 
   _write(data, encoding, callback) {
-    console.log('write', data);
     this._instance().write(data, encoding, callback);
   }
 
@@ -105,8 +105,8 @@ export default class ClientRequest extends Writable {
     const user = this._connection.user();
     const headers = Object.assign({}, this._headers);
 
-    if (this._method !== 'GET') {
-      headers['Content-Type'] = this._codec.type;
+    if (this._method !== 'GET' && this._connection.codec()) {
+      headers['Content-Type'] = this._connection.codec().type;
     }
 
     if (user) {
@@ -114,7 +114,8 @@ export default class ClientRequest extends Writable {
     }
 
     const query = formatQuery(this._query);
-    const request = this._connection.http().request({
+
+    this._request = this._connection.http().request({
       host: this._host,
       headers,
       method: this._method,
@@ -123,22 +124,17 @@ export default class ClientRequest extends Writable {
       withCredentials: false
     });
 
-    this._request = request;
-
-    console.log('trying');
-
-    request.once('error', (error) => {
+    this._request.once('error', (error) => {
       this.emit('error', error);
     });
 
-    request.once('response', (response) => {
-      console.log('response');
+    this._request.once('response', (response) => {
       this.emit('response', this._createResponse(response));
     });
 
     this._writer = new Writer();
     this._encoder = this._connection.encoder(this._writer);
-    this._encoder.pipe(request);
+    this._encoder.pipe(this._request);
 
     return this._writer;
   }
