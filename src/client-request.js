@@ -12,6 +12,7 @@ export default class ClientRequest extends Writable {
     this._connection = null;
     this._writer = null;
     this._encoder = null;
+    this._request = null;
 
     this._host = null;
     this._port = null;
@@ -21,7 +22,7 @@ export default class ClientRequest extends Writable {
     this._headers = {};
 
     this.once('finish', () => {
-      this._request.end();
+      this._requestInstance().end();
     });
   }
 
@@ -94,16 +95,29 @@ export default class ClientRequest extends Writable {
   }
 
   _write(data, encoding, callback) {
-    this._instance().write(data, encoding, callback);
+    this._writerInstance().write(data, encoding, callback);
   }
 
-  _instance() {
+  _writerInstance() {
     if (this._writer) {
       return this._writer;
     }
 
+    this._writer = new Writer();
+    this._encoder = this._connection.encoder(this._writer);
+    this._encoder.pipe(this._requestInstance());
+
+    return this._writer;
+  }
+
+  _requestInstance() {
+    if (this._request) {
+      return this._request;
+    }
+
     const user = this._connection.user();
     const headers = Object.assign({}, this._headers);
+    const query = formatQuery(this._query);
 
     if (this._method !== 'GET' && this._connection.codec()) {
       headers['Content-Type'] = this._connection.codec().type;
@@ -112,8 +126,6 @@ export default class ClientRequest extends Writable {
     if (user) {
       headers.Authorization = 'Bearer ' + user.token();
     }
-
-    const query = formatQuery(this._query);
 
     this._request = this._connection.http().request({
       host: this._host,
@@ -132,11 +144,7 @@ export default class ClientRequest extends Writable {
       this.emit('response', this._createResponse(response));
     });
 
-    this._writer = new Writer();
-    this._encoder = this._connection.encoder(this._writer);
-    this._encoder.pipe(this._request);
-
-    return this._writer;
+    return this._request;
   }
 
   _createResponse(response) {
