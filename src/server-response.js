@@ -88,6 +88,11 @@ export default class ServerResponse extends Writable {
       writer;
   }
 
+  end(data, encoding, callback) {
+    this._response._writeOnEnd = true;
+    super.end(data, encoding, callback);
+  }
+
   _write(data, encoding, callback) {
     this._instance().write(data, encoding, callback);
   }
