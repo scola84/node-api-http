@@ -8,5 +8,7 @@ export { default as Writer } from './src/helper/writer';
 export { default as parseHeader } from './src/helper/parse-header';
 
 export function load(app) {
-  app.i18n().strings(strings);
+  if (app.i18n()) {
+    app.i18n().strings(strings);
+  }
 }
