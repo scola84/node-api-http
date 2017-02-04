@@ -11,7 +11,23 @@ export default class ClientResponse extends Readable {
     this._response = null;
     this._decoder = null;
     this._headers = {};
-    this._data = null;
+    this._responseData = null;
+
+    this._handleData = (d) => this._data(d);
+    this._handleEnd = () => this._end();
+  }
+
+  destroy() {
+    if (this._decoder) {
+      this._decoder.end();
+    }
+
+    this._unbindDecoder();
+    this.push(null);
+
+    this._connection = null;
+    this._response = null;
+    this._decoder = null;
   }
 
   connection(value = null) {
@@ -43,30 +59,51 @@ export default class ClientResponse extends Readable {
 
   data(value = null) {
     if (value === null) {
-      return this._data;
+      return this._responseData;
     }
 
-    this._data = value;
+    this._responseData = value;
     return this;
   }
 
-  _read() {
-    if (!this._decoder) {
-      this._decoder = this._instance();
+  _bindDecoder() {
+    if (this._decoder) {
+      this._decoder.on('data', this._handleData);
+      this._decoder.once('end', this._handleEnd);
     }
   }
 
+  _unbindDecoder() {
+    if (this._decoder) {
+      this._decoder.removeListener('data', this._handleData);
+      this._decoder.removeListener('end', this._handleEnd);
+    }
+  }
+
+  _read() {
+    this._instance().resume();
+  }
+
   _instance() {
-    const decoder = this._connection.decoder(this._response);
+    if (this._decoder) {
+      return this._decoder;
+    }
 
-    decoder.on('data', (data) => {
-      this.push(data);
-    });
+    this._decoder = this._connection.decoder(this._response);
 
-    decoder.once('end', () => {
-      this.push(null);
-    });
+    this._bindDecoder();
+    return this._decoder;
+  }
 
-    return decoder;
+  _data(data) {
+    const more = this.push(data);
+
+    if (!more) {
+      this._decoder.pause();
+    }
+  }
+
+  _end() {
+    this.destroy();
   }
 }

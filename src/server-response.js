@@ -13,19 +13,31 @@ export default class ServerResponse extends Writable {
     this._writer = null;
     this._encoder = null;
 
-    this.once('finish', () => {
-      this._response.end();
-    });
+    this._handleFinish = () => this._finish();
+    this._bind();
   }
 
-  destroy(error) {
+  destroy(abort = false) {
     if (this._writer) {
       this._writer.end();
     }
 
-    if (error) {
-      this.emit('error', error);
+    if (this._response) {
+      this._response.destroy();
     }
+
+    this._unbind();
+
+    if (abort === true) {
+      this.emit('abort');
+    }
+
+    this.end();
+
+    this._connection = null;
+    this._response = null;
+    this._writer = null;
+    this._encoder = null;
   }
 
   connection(value = null) {
@@ -43,6 +55,9 @@ export default class ServerResponse extends Writable {
     }
 
     this._response = value;
+    this._response._writes = 0;
+    this._response._ended = false;
+
     return this;
   }
 
@@ -82,19 +97,32 @@ export default class ServerResponse extends Writable {
     return this;
   }
 
-  encoder(writer) {
-    return this._codec &&
-      this._codec.encoder(writer, this._connection) ||
-      writer;
+  end(data, encoding, callback) {
+    this._response._ended = true;
+    super.end(data, encoding, callback);
   }
 
-  end(data, encoding, callback) {
-    this._response._writeOnEnd = true;
-    super.end(data, encoding, callback);
+  write(data, encoding, callback) {
+    this._response._writes += 1;
+    super.write(data, encoding, callback);
+  }
+
+  _bind() {
+    this.once('finish', this._handleFinish);
+  }
+
+  _unbind() {
+    this.removeListener('finish', this._handleFinish);
   }
 
   _write(data, encoding, callback) {
     this._instance().write(data, encoding, callback);
+  }
+
+  _finish() {
+    this._response.end(() => {
+      this.destroy();
+    });
   }
 
   _instance() {
@@ -103,9 +131,11 @@ export default class ServerResponse extends Writable {
     }
 
     this._writer = new Writer();
-    this._encoder = this.encoder(this._writer);
-    this._encoder.pipe(this._response);
+    this._encoder = this._codec &&
+      this._codec.encoder(this._writer, this._connection) ||
+      this._writer;
 
+    this._encoder.pipe(this._response);
     return this._writer;
   }
 }

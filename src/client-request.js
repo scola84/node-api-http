@@ -21,9 +21,22 @@ export default class ClientRequest extends Writable {
     this._query = {};
     this._headers = {};
 
-    this.once('finish', () => {
-      this._requestInstance().end();
-    });
+    this._handleFinish = () => this._finish();
+    this._bind();
+  }
+
+  destroy() {
+    if (this._writer) {
+      this._writer.end();
+    }
+
+    this._unbind();
+    this.end();
+
+    this._connection = null;
+    this._writer = null;
+    this._encoder = null;
+    this._request = null;
   }
 
   connection(value = null) {
@@ -94,8 +107,22 @@ export default class ClientRequest extends Writable {
     return this;
   }
 
+  _bind() {
+    this.once('finish', this._handleFinish);
+  }
+
+  _unbind() {
+    this.removeListener('finish', this._handleFinish);
+  }
+
   _write(data, encoding, callback) {
     this._writerInstance().write(data, encoding, callback);
+  }
+
+  _finish() {
+    this._requestInstance().end(() => {
+      this.destroy();
+    });
   }
 
   _writerInstance() {

@@ -21,21 +21,35 @@ export default class ServerRequest extends Readable {
     this._version = null;
     this._query = {};
     this._params = {};
-    this._data = null;
+    this._requestData = null;
 
     this._methods = [];
     this._match = {};
+
+    this._handleData = (d) => this._data(d);
+    this._handleEnd = () => this._end();
   }
 
-  destroy(error) {
+  destroy(abort = false) {
     if (this._decoder) {
-      this._decoder.removeAllListeners();
       this._decoder.end();
     }
 
-    if (error) {
-      this.emit('error', error);
+    if (this._request) {
+      this._request.destroy();
     }
+
+    this._unbindDecoder();
+
+    if (abort === true) {
+      this.emit('abort');
+    }
+
+    this.push(null);
+
+    this._connection = null;
+    this._request = null;
+    this._decoder = null;
   }
 
   connection(value = null) {
@@ -154,10 +168,10 @@ export default class ServerRequest extends Readable {
 
   data(value = null) {
     if (value === null) {
-      return this._data;
+      return this._requestData;
     }
 
-    this._data = value;
+    this._requestData = value;
     return this;
   }
 
@@ -192,12 +206,6 @@ export default class ServerRequest extends Readable {
     return this;
   }
 
-  decoder(writer) {
-    return this._codec &&
-      this._codec.decoder(writer, this._connection, this) ||
-      writer;
-  }
-
   address() {
     let address = null;
     let port = null;
@@ -217,23 +225,46 @@ export default class ServerRequest extends Readable {
     };
   }
 
-  _read() {
-    if (!this._decoder) {
-      this._decoder = this._instance();
+  _bindDecoder() {
+    if (this._decoder) {
+      this._decoder.on('data', this._handleData);
+      this._decoder.once('end', this._handleEnd);
     }
   }
 
+  _unbindDecoder() {
+    if (this._decoder) {
+      this._decoder.removeListener('data', this._handleData);
+      this._decoder.removeListener('end', this._handleEnd);
+    }
+  }
+
+  _read() {
+    this._instance().resume();
+  }
+
   _instance() {
-    const decoder = this.decoder(this._request);
+    if (this._decoder) {
+      return this._decoder;
+    }
 
-    decoder.on('data', (data) => {
-      this.push(data);
-    });
+    this._decoder = this._codec &&
+      this._codec.decoder(this._request, this._connection, this) ||
+      this._request;
 
-    decoder.once('end', () => {
-      this.push(null);
-    });
+    this._bindDecoder();
+    return this._decoder;
+  }
 
-    return decoder;
+  _data(data) {
+    const more = this.push(data);
+
+    if (!more) {
+      this._decoder.pause();
+    }
+  }
+
+  _end() {
+    this.destroy();
   }
 }
