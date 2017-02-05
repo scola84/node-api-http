@@ -18,12 +18,7 @@ export default class ClientResponse extends Readable {
   }
 
   destroy() {
-    if (this._decoder) {
-      this._decoder.end();
-    }
-
-    this._unbindDecoder();
-    this.push(null);
+    this._tearDown();
 
     this._connection = null;
     this._response = null;
@@ -81,18 +76,7 @@ export default class ClientResponse extends Readable {
   }
 
   _read() {
-    this._instance().resume();
-  }
-
-  _instance() {
-    if (this._decoder) {
-      return this._decoder;
-    }
-
-    this._decoder = this._connection.decoder(this._response);
-
-    this._bindDecoder();
-    return this._decoder;
+    this._setUp().resume();
   }
 
   _data(data) {
@@ -104,6 +88,27 @@ export default class ClientResponse extends Readable {
   }
 
   _end() {
-    this.destroy();
+    this._tearDown();
+  }
+
+  _setUp() {
+    if (this._decoder) {
+      return this._decoder;
+    }
+
+    this._decoder = this._connection
+      .decoder(this._response);
+
+    this._bindDecoder();
+    return this._decoder;
+  }
+
+  _tearDown() {
+    if (this._decoder) {
+      this._decoder.end();
+    }
+
+    this._unbindDecoder();
+    this.push(null);
   }
 }

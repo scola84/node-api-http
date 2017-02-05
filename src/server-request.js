@@ -30,22 +30,12 @@ export default class ServerRequest extends Readable {
     this._handleEnd = () => this._end();
   }
 
-  destroy(abort = false) {
-    if (this._decoder) {
-      this._decoder.end();
-    }
-
+  destroy(abort) {
     if (this._request) {
       this._request.destroy();
     }
 
-    this._unbindDecoder();
-
-    if (abort === true) {
-      this.emit('abort');
-    }
-
-    this.push(null);
+    this._tearDown(abort);
 
     this._connection = null;
     this._request = null;
@@ -240,20 +230,7 @@ export default class ServerRequest extends Readable {
   }
 
   _read() {
-    this._instance().resume();
-  }
-
-  _instance() {
-    if (this._decoder) {
-      return this._decoder;
-    }
-
-    this._decoder = this._codec &&
-      this._codec.decoder(this._request, this._connection, this) ||
-      this._request;
-
-    this._bindDecoder();
-    return this._decoder;
+    this._setUp().resume();
   }
 
   _data(data) {
@@ -265,6 +242,33 @@ export default class ServerRequest extends Readable {
   }
 
   _end() {
-    this.destroy();
+    this._tearDown();
+  }
+
+  _setUp() {
+    if (this._decoder) {
+      return this._decoder;
+    }
+
+    this._decoder = this._codec ?
+      this._codec.decoder(this._request, this._connection, this) :
+      this._request;
+
+    this._bindDecoder();
+    return this._decoder;
+  }
+
+  _tearDown(abort = false) {
+    if (this._decoder) {
+      this._decoder.end();
+    }
+
+    this._unbindDecoder();
+
+    if (abort === true) {
+      this.emit('abort');
+    }
+
+    this.push(null);
   }
 }

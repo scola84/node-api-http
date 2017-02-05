@@ -22,16 +22,11 @@ export default class ClientRequest extends Writable {
     this._headers = {};
 
     this._handleFinish = () => this._finish();
-    this._bind();
+    this._bindThis();
   }
 
   destroy() {
-    if (this._writer) {
-      this._writer.end();
-    }
-
-    this._unbind();
-    this.end();
+    this._tearDown();
 
     this._connection = null;
     this._writer = null;
@@ -107,37 +102,40 @@ export default class ClientRequest extends Writable {
     return this;
   }
 
-  _bind() {
+  _bindThis() {
     this.once('finish', this._handleFinish);
   }
 
-  _unbind() {
+  _unbindThis() {
     this.removeListener('finish', this._handleFinish);
   }
 
   _write(data, encoding, callback) {
-    this._writerInstance().write(data, encoding, callback);
+    this._setupWriter().write(data, encoding, callback);
   }
 
   _finish() {
-    this._requestInstance().end(() => {
-      this.destroy();
+    this._setupRequest().end(() => {
+      this._tearDown();
     });
   }
 
-  _writerInstance() {
+  _setupWriter() {
     if (this._writer) {
       return this._writer;
     }
 
     this._writer = new Writer();
-    this._encoder = this._connection.encoder(this._writer);
-    this._encoder.pipe(this._requestInstance());
+    this._encoder = this._connection
+      .encoder(this._writer);
+
+    this._encoder
+      .pipe(this._setupRequest());
 
     return this._writer;
   }
 
-  _requestInstance() {
+  _setupRequest() {
     if (this._request) {
       return this._request;
     }
@@ -168,15 +166,20 @@ export default class ClientRequest extends Writable {
     });
 
     this._request.once('response', (response) => {
-      this.emit('response', this._createResponse(response));
+      this.emit('response', new ClientResponse()
+        .connection(this._connection)
+        .response(response));
     });
 
     return this._request;
   }
 
-  _createResponse(response) {
-    return new ClientResponse()
-      .connection(this._connection)
-      .response(response);
+  _tearDown() {
+    if (this._writer) {
+      this._writer.end();
+    }
+
+    this._unbindThis();
+    this.end();
   }
 }

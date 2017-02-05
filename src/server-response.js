@@ -14,25 +14,15 @@ export default class ServerResponse extends Writable {
     this._encoder = null;
 
     this._handleFinish = () => this._finish();
-    this._bind();
+    this._bindThis();
   }
 
-  destroy(abort = false) {
-    if (this._writer) {
-      this._writer.end();
-    }
-
+  destroy(abort) {
     if (this._response) {
       this._response.destroy();
     }
 
-    this._unbind();
-
-    if (abort === true) {
-      this.emit('abort');
-    }
-
-    this.end();
+    this._tearDown(abort);
 
     this._connection = null;
     this._response = null;
@@ -107,35 +97,51 @@ export default class ServerResponse extends Writable {
     super.write(data, encoding, callback);
   }
 
-  _bind() {
+  _bindThis() {
     this.once('finish', this._handleFinish);
   }
 
-  _unbind() {
+  _unbindThis() {
     this.removeListener('finish', this._handleFinish);
   }
 
   _write(data, encoding, callback) {
-    this._instance().write(data, encoding, callback);
+    this._setUp().write(data, encoding, callback);
   }
 
   _finish() {
     this._response.end(() => {
-      this.destroy();
+      this._tearDown();
     });
   }
 
-  _instance() {
+  _setUp() {
     if (this._writer) {
       return this._writer;
     }
 
     this._writer = new Writer();
-    this._encoder = this._codec &&
-      this._codec.encoder(this._writer, this._connection) ||
+    this._encoder = this._codec ?
+      this._codec.encoder(this._writer, this._connection) :
       this._writer;
 
-    this._encoder.pipe(this._response);
+    this._encoder
+      .pipe(this._response);
+
     return this._writer;
+  }
+
+  _tearDown(abort = false) {
+    if (this._writer) {
+      this._writer.end();
+    }
+
+    this._unbindThis();
+
+    if (abort === true) {
+      this.emit('abort');
+    }
+
+    this.end();
   }
 }
