@@ -91,7 +91,10 @@ export default class ServerRequest extends Readable {
     const parsedUrl = parseUrl(value);
 
     this._url = value;
-    this._query = parseQuery(parsedUrl.query);
+    this._query = parseQuery(parsedUrl.query, {
+      allowDots: true,
+      arrayFormat: 'repeat'
+    });
 
     const [path, version = ''] = parsedUrl.pathname.split('@');
 

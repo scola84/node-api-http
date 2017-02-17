@@ -142,7 +142,10 @@ export default class ClientRequest extends Writable {
 
     const user = this._connection.user();
     const headers = Object.assign({}, this._headers);
-    const query = formatQuery(this._query);
+    const query = formatQuery(this._query, {
+      allowDots: true,
+      arrayFormat: 'repeat'
+    });
 
     if (this._method !== 'GET' && this._connection.codec()) {
       headers['Content-Type'] = this._connection.codec().type;
