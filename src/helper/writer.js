@@ -9,7 +9,7 @@ export default class Writer extends Duplex {
 
   _read() {}
 
-  _write(data, encoding, callback) {
+  _write(data, encoding, callback = () => {}) {
     this.push(data);
     callback();
   }
