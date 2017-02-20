@@ -165,10 +165,13 @@ export default class ClientRequest extends Writable {
     });
 
     this._request.once('error', (error) => {
+      this._request.removeAllListeners();
       this.emit('error', error);
     });
 
     this._request.once('response', (response) => {
+      this._request.removeAllListeners();
+
       this.emit('response', new ClientResponse()
         .connection(this._connection)
         .response(response));
