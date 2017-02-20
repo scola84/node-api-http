@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { debuglog } from 'util';
 import Connection from './connection';
 import ServerRequest from './server-request';
 import ServerResponse from './server-response';
@@ -6,6 +7,8 @@ import ServerResponse from './server-response';
 export default class HttpConnector extends EventEmitter {
   constructor() {
     super();
+
+    this._log = debuglog('http');
 
     this._server = null;
     this._router = null;
@@ -57,6 +60,8 @@ export default class HttpConnector extends EventEmitter {
   }
 
   _request(request, response) {
+    this._log('Connector _request %s %s', request.method, request.url);
+
     const connection = new Connection()
       .socket(request.connection);
 

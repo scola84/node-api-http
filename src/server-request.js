@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
+import { debuglog } from 'util';
 import parseQuery from 'qs/lib/parse';
 import parseHeader from './helper/parse-header';
 
@@ -8,6 +9,8 @@ export default class ServerRequest extends Readable {
     super({
       objectMode: true
     });
+
+    this._log = debuglog('http');
 
     this._connection = null;
     this._request = null;
@@ -31,6 +34,8 @@ export default class ServerRequest extends Readable {
   }
 
   destroy(abort) {
+    this._log('ServerRequest destroy %s', abort);
+
     if (this._request) {
       this._request.destroy();
     }
@@ -200,21 +205,18 @@ export default class ServerRequest extends Readable {
   }
 
   address() {
-    let address = null;
-    let port = null;
-
     if (this._headers['x-real-ip']) {
-      address = this._headers['x-real-ip'];
-      port = this._headers['x-real-port'];
-    } else {
-      const parsedAddress = this._connection.address();
-      address = parsedAddress.address;
-      port = parsedAddress.port;
+      return {
+        address: this._headers['x-real-ip'],
+        port: this._headers['x-real-port']
+      };
     }
 
+    const parsedAddress = this._connection.address();
+
     return {
-      address,
-      port
+      address: parsedAddress.address,
+      port: parsedAddress.port
     };
   }
 
@@ -233,10 +235,13 @@ export default class ServerRequest extends Readable {
   }
 
   _read() {
+    this._log('ServerRequest _read');
     this._setUp().resume();
   }
 
   _data(data) {
+    this._log('ServerRequest _data %j', data);
+
     const more = this.push(data);
 
     if (!more) {
@@ -245,6 +250,7 @@ export default class ServerRequest extends Readable {
   }
 
   _end() {
+    this._log('ServerRequest _end');
     this._tearDown();
   }
 

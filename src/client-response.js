@@ -1,4 +1,5 @@
 import { Readable } from 'stream';
+import { debuglog } from 'util';
 import parseHeader from './helper/parse-header';
 
 export default class ClientResponse extends Readable {
@@ -6,6 +7,8 @@ export default class ClientResponse extends Readable {
     super({
       objectMode: true
     });
+
+    this._log = debuglog('http');
 
     this._connection = null;
     this._response = null;
@@ -18,6 +21,7 @@ export default class ClientResponse extends Readable {
   }
 
   destroy() {
+    this._log('ClientResponse destroy');
     this._tearDown();
 
     this._connection = null;
@@ -76,10 +80,13 @@ export default class ClientResponse extends Readable {
   }
 
   _read() {
+    this._log('ClientResponse _read');
     this._setUp().resume();
   }
 
   _data(data) {
+    this._log('ClientResponse _data %j', data);
+
     const more = this.push(data);
 
     if (!more) {
@@ -88,6 +95,7 @@ export default class ClientResponse extends Readable {
   }
 
   _end() {
+    this._log('ClientResponse _end');
     this._tearDown();
   }
 

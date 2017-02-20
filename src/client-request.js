@@ -1,5 +1,6 @@
 import formatQuery from 'qs/lib/stringify';
 import { Writable } from 'stream';
+import { debuglog } from 'util';
 import ClientResponse from './client-response';
 import Writer from './helper/writer';
 
@@ -8,6 +9,8 @@ export default class ClientRequest extends Writable {
     super({
       objectMode: true
     });
+
+    this._log = debuglog('http');
 
     this._connection = null;
     this._writer = null;
@@ -26,6 +29,7 @@ export default class ClientRequest extends Writable {
   }
 
   destroy() {
+    this._log('ClientRequest destroy');
     this._tearDown();
 
     this._connection = null;
@@ -111,13 +115,13 @@ export default class ClientRequest extends Writable {
   }
 
   _write(data, encoding, callback) {
+    this._log('ClientRequest _write %j', data);
     this._setupWriter().write(data, encoding, callback);
   }
 
   _finish() {
-    this._setupRequest().end(() => {
-      this._tearDown();
-    });
+    this._log('ClientRequest _finish');
+    this._setupRequest().end(() => this._tearDown());
   }
 
   _setupWriter() {

@@ -1,4 +1,5 @@
 import { Writable } from 'stream';
+import { debuglog } from 'util';
 import Writer from './helper/writer';
 
 export default class ServerResponse extends Writable {
@@ -6,6 +7,8 @@ export default class ServerResponse extends Writable {
     super({
       objectMode: true
     });
+
+    this._log = debuglog('http');
 
     this._connection = null;
     this._response = null;
@@ -18,6 +21,8 @@ export default class ServerResponse extends Writable {
   }
 
   destroy(abort) {
+    this._log('ServerResponse destroy %s', abort);
+
     if (this._response) {
       this._response.destroy();
     }
@@ -88,11 +93,13 @@ export default class ServerResponse extends Writable {
   }
 
   end(data, encoding, callback) {
+    this._log('ServerResponse end %j', data);
     this._response._ended = true;
     super.end(data, encoding, callback);
   }
 
   write(data, encoding, callback) {
+    this._log('ServerResponse write %j', data);
     this._response._writes += 1;
     super.write(data, encoding, callback);
   }
@@ -106,10 +113,13 @@ export default class ServerResponse extends Writable {
   }
 
   _write(data, encoding, callback) {
+    this._log('ServerResponse _write %j', data);
     this._setUp().write(data, encoding, callback);
   }
 
   _finish() {
+    this._log('ServerResponse _finish');
+
     this._response.end(() => {
       this._tearDown();
     });

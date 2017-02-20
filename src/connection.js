@@ -1,9 +1,12 @@
 import { EventEmitter } from 'events';
+import { debuglog } from 'util';
 import ClientRequest from './client-request';
 
 export default class HttpConnection extends EventEmitter {
   constructor() {
     super();
+
+    this._log = debuglog('http');
 
     this._socket = null;
     this._http = null;
@@ -80,6 +83,8 @@ export default class HttpConnection extends EventEmitter {
   }
 
   request() {
+    this._log('Connection request');
+
     return new ClientRequest()
       .connection(this)
       .host(this._host)
