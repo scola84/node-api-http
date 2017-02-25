@@ -16,7 +16,9 @@ export default class ServerResponse extends Writable {
     this._writer = null;
     this._encoder = null;
 
+    this._handleError = (e) => this._error(e);
     this._handleFinish = () => this._finish();
+
     this._bindThis();
   }
 
@@ -24,6 +26,7 @@ export default class ServerResponse extends Writable {
     this._log('ServerResponse destroy %s', abort);
 
     if (this._response) {
+      this._unbindResponse();
       this._response.destroy();
     }
 
@@ -50,6 +53,8 @@ export default class ServerResponse extends Writable {
     }
 
     this._response = value;
+    this._bindResponse();
+
     this._response._writes = 0;
     this._response._ended = false;
 
@@ -112,9 +117,25 @@ export default class ServerResponse extends Writable {
     this.removeListener('finish', this._handleFinish);
   }
 
+  _bindResponse() {
+    if (this._response) {
+      this._response.on('error', this._handleError);
+    }
+  }
+
+  _unbindResponse() {
+    if (this._response) {
+      this._response.removeListener('error', this._handleError);
+    }
+  }
+
   _write(data, encoding, callback) {
     this._log('ServerResponse _write %j', data);
     this._setUp().write(data, encoding, callback);
+  }
+
+  _error(error) {
+    this.emit('error', error);
   }
 
   _finish() {

@@ -31,12 +31,14 @@ export default class ServerRequest extends Readable {
 
     this._handleData = (d) => this._data(d);
     this._handleEnd = () => this._end();
+    this._handleError = (e) => this._error(e);
   }
 
   destroy(abort) {
     this._log('ServerRequest destroy %s', abort);
 
     if (this._request) {
+      this._unbindRequest();
       this._request.destroy();
     }
 
@@ -62,6 +64,7 @@ export default class ServerRequest extends Readable {
     }
 
     this._request = value;
+    this._bindRequest();
 
     this.method(this._request.method);
     this.url(this._request.url);
@@ -220,6 +223,18 @@ export default class ServerRequest extends Readable {
     };
   }
 
+  _bindRequest() {
+    if (this._request) {
+      this._request.on('error', this._handleError);
+    }
+  }
+
+  _unbindRequest() {
+    if (this._request) {
+      this._request.removeListener('error', this._handleError);
+    }
+  }
+
   _bindDecoder() {
     if (this._decoder) {
       this._decoder.on('data', this._handleData);
@@ -252,6 +267,10 @@ export default class ServerRequest extends Readable {
   _end() {
     this._log('ServerRequest _end');
     this._tearDown();
+  }
+
+  _error(error) {
+    this.emit('error', error);
   }
 
   _setUp() {

@@ -12,6 +12,8 @@ export default class HttpConnection extends EventEmitter {
     this._http = null;
     this._codec = null;
     this._user = null;
+    this._auth = false;
+
     this._host = null;
     this._port = null;
   }
@@ -49,6 +51,19 @@ export default class HttpConnection extends EventEmitter {
     }
 
     this._user = value;
+    this.emit('user', value);
+
+    return this;
+  }
+
+  auth(value = null) {
+    if (value === null) {
+      return this._auth;
+    }
+
+    this._auth = value;
+    this.emit('auth', value);
+
     return this;
   }
 
@@ -80,6 +95,10 @@ export default class HttpConnection extends EventEmitter {
 
   address() {
     return this._socket.address();
+  }
+
+  writable() {
+    return true;
   }
 
   request() {
