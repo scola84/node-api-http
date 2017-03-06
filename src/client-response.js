@@ -88,7 +88,7 @@ export default class ClientResponse extends Readable {
 
     const more = this.push(data);
 
-    if (!more) {
+    if (!more && this._decoder) {
       this._decoder.pause();
     }
   }

@@ -251,7 +251,10 @@ export default class ServerRequest extends Readable {
 
   _read() {
     this._log('ServerRequest _read');
-    this._setUp().resume();
+
+    if (this._request) {
+      this._setUp().resume();
+    }
   }
 
   _data(data) {
@@ -259,7 +262,7 @@ export default class ServerRequest extends Readable {
 
     const more = this.push(data);
 
-    if (!more) {
+    if (!more && this._decoder) {
       this._decoder.pause();
     }
   }
