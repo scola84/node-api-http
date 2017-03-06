@@ -24,12 +24,17 @@ export default class ClientRequest extends Writable {
     this._query = {};
     this._headers = {};
 
+    this._handleError = (e) => this._error(e);
     this._handleFinish = () => this._finish();
+    this._handleResponse = (r) => this._response(r);
+
     this._bindThis();
   }
 
   destroy() {
     this._log('ClientRequest destroy');
+
+    this._unbindRequest();
     this._tearDown();
 
     this._connection = null;
@@ -114,6 +119,20 @@ export default class ClientRequest extends Writable {
     this.removeListener('finish', this._handleFinish);
   }
 
+  _bindRequest() {
+    if (this._request) {
+      this._request.on('error', this._handleError);
+      this._request.on('response', this._handleResponse);
+    }
+  }
+
+  _unbindRequest() {
+    if (this._request) {
+      this._request.removeListener('error', this._handleError);
+      this._request.removeListener('response', this._handleResponse);
+    }
+  }
+
   _write(data, encoding, callback) {
     this._log('ClientRequest _write %j', data);
     this._setupWriter().write(data, encoding, callback);
@@ -122,6 +141,19 @@ export default class ClientRequest extends Writable {
   _finish() {
     this._log('ClientRequest _finish');
     this._setupRequest().end(() => this._tearDown());
+  }
+
+  _error(error) {
+    this._unbindRequest();
+    this.emit('error', error);
+  }
+
+  _response(response) {
+    this._unbindRequest();
+
+    this.emit('response', new ClientResponse()
+      .connection(this._connection)
+      .response(response));
   }
 
   _setupWriter() {
@@ -168,19 +200,7 @@ export default class ClientRequest extends Writable {
       withCredentials: false
     });
 
-    this._request.once('error', (error) => {
-      this._request.removeAllListeners();
-      this.emit('error', error);
-    });
-
-    this._request.once('response', (response) => {
-      this._request.removeAllListeners();
-
-      this.emit('response', new ClientResponse()
-        .connection(this._connection)
-        .response(response));
-    });
-
+    this._bindRequest();
     return this._request;
   }
 
