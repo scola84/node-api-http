@@ -9,6 +9,6 @@
   "jsnext:main": "index.js",
   "dependencies": {
     "@scola/error": "^4.3.0",
-    "qs": "^6.3.0"
+    "qs": "^6.4.0"
   }
 }
