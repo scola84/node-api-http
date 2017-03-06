@@ -81,7 +81,7 @@ export default class ServerResponse extends Writable {
 
   header(name = null, value = null) {
     if (name === null) {
-      return this._response.headers;
+      return this._response._headers;
     }
 
     if (value === null) {

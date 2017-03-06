@@ -13,7 +13,6 @@ export default class ClientResponse extends Readable {
     this._connection = null;
     this._response = null;
     this._decoder = null;
-    this._headers = {};
     this._responseData = null;
 
     this._handleData = (d) => this._data(d);
