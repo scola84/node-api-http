@@ -67,7 +67,7 @@ export default class ClientResponse extends Readable {
   _bindDecoder() {
     if (this._decoder) {
       this._decoder.on('data', this._handleData);
-      this._decoder.once('end', this._handleEnd);
+      this._decoder.on('end', this._handleEnd);
     }
   }
 
@@ -99,6 +99,14 @@ export default class ClientResponse extends Readable {
   }
 
   _setUp() {
+    const type = this._response.headers['content-type'] || '';
+    const codec = this._connection.codec() || {};
+
+    if (type.indexOf(codec.type) === -1) {
+      this.push('500 invalid_response ' + this._response.statusMessage);
+      return this._response;
+    }
+
     if (this._decoder) {
       return this._decoder;
     }
