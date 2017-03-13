@@ -1,3 +1,4 @@
+import get from 'lodash-es/get';
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import { debuglog } from 'util';
@@ -156,7 +157,7 @@ export default class ServerRequest extends Readable {
   }
 
   param(name) {
-    return this._params[name];
+    return get(this._params, name);
   }
 
   query(name = null) {
@@ -164,7 +165,7 @@ export default class ServerRequest extends Readable {
       return this._query;
     }
 
-    return this._query[name];
+    return get(this._query, name);
   }
 
   data(value = null) {
