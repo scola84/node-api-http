@@ -5,8 +5,8 @@
   "repository": "github:scola84/node-api-http",
   "author": "M.C. van den Boogaart <scola@kvdb.name>",
   "license": "MIT",
-  "main": "index.js",
-  "jsnext:main": "index.js",
+  "main": "./index.js",
+  "jsnext:main": "./index.js",
   "dependencies": {
     "@scola/error": "^4.3.0",
     "qs": "^6.4.0"
