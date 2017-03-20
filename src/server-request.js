@@ -1,4 +1,5 @@
 import get from 'lodash-es/get';
+import merge from 'lodash-es/merge';
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import { debuglog } from 'util';
@@ -25,7 +26,7 @@ export default class ServerRequest extends Readable {
     this._version = null;
     this._query = {};
     this._params = {};
-    this._requestData = null;
+    this._requestData = {};
 
     this._methods = [];
     this._match = {};
@@ -173,7 +174,7 @@ export default class ServerRequest extends Readable {
       return this._requestData;
     }
 
-    this._requestData = value;
+    merge(this._requestData, value);
     return this;
   }
 
