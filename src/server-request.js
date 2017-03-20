@@ -153,7 +153,7 @@ export default class ServerRequest extends Readable {
       return this._params;
     }
 
-    this._params = value;
+    merge(this._params, value);
     return this;
   }
 
@@ -176,6 +176,10 @@ export default class ServerRequest extends Readable {
 
     merge(this._requestData, value);
     return this;
+  }
+
+  datum(name) {
+    return get(this._requestData, name);
   }
 
   allow(method = null, action = null) {
