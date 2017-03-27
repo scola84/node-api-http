@@ -51,8 +51,14 @@ export default class ClientResponse extends Readable {
   }
 
   header(name, parse = false) {
-    const header = this._response.headers[name.toLowerCase()];
-    return header && parse ? parseHeader(header) : header;
+    const header = this._headers[name] ||
+      this._headers[name.toLowerCase()];
+
+    if (typeof header === 'undefined') {
+      return null;
+    }
+
+    return parse === true ? parseHeader(header) : header;
   }
 
   data(value = null) {
@@ -88,7 +94,7 @@ export default class ClientResponse extends Readable {
 
     const more = this.push(data);
 
-    if (!more && this._decoder) {
+    if (more === false && this._decoder) {
       this._decoder.pause();
     }
   }

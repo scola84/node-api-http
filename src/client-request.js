@@ -97,9 +97,14 @@ export default class ClientRequest extends Writable {
     return this;
   }
 
-  header(name, value = null) {
+  header(name = null, value = null) {
+    if (name === null) {
+      return this._headers;
+    }
+
     if (value === null) {
-      return this._headers[name];
+      return typeof this._headers[name] === 'undefined' ?
+        null : this._headers[name];
     }
 
     if (value === false) {
@@ -178,16 +183,20 @@ export default class ClientRequest extends Writable {
 
     const user = this._connection.user();
     const headers = Object.assign({}, this._headers);
+
     const query = formatQuery(this._query, {
       allowDots: true,
       arrayFormat: 'repeat'
     });
 
+    const path = this._path + (query.length > 0 ?
+      '?' + query : '');
+
     if (this._method !== 'GET' && this._connection.codec()) {
       headers['Content-Type'] = this._connection.codec().type;
     }
 
-    if (user) {
+    if (user !== null) {
       headers.Authorization = 'Bearer ' + user.token();
     }
 
@@ -195,7 +204,7 @@ export default class ClientRequest extends Writable {
       host: this._host,
       headers,
       method: this._method,
-      path: this._path + (query ? '?' + query : ''),
+      path,
       port: this._port,
       withCredentials: false
     });

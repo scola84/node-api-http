@@ -83,7 +83,7 @@ export default class HttpConnection extends EventEmitter {
     return this._socket.address();
   }
 
-  writable() {
+  connected() {
     return true;
   }
 

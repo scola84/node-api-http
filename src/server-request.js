@@ -127,7 +127,11 @@ export default class ServerRequest extends Readable {
     const header = this._headers[name] ||
       this._headers[name.toLowerCase()];
 
-    return header && parse ? parseHeader(header) : header;
+    if (typeof header === 'undefined') {
+      return null;
+    }
+
+    return parse === true ? parseHeader(header) : header;
   }
 
   path(value = null) {
@@ -179,7 +183,8 @@ export default class ServerRequest extends Readable {
   }
 
   datum(name) {
-    return get(this._requestData, name);
+    const datum = get(this._requestData, name);
+    return typeof datum === 'undefined' ? null : datum;
   }
 
   allow(method = null, action = null) {
@@ -206,7 +211,8 @@ export default class ServerRequest extends Readable {
     }
 
     if (value === null) {
-      return this._match[name];
+      return typeof this._match[name] === 'undefined' ?
+        null : this._match[name];
     }
 
     this._match[name] = value;
@@ -214,18 +220,16 @@ export default class ServerRequest extends Readable {
   }
 
   address() {
-    if (this._headers['x-real-ip']) {
-      return {
-        address: this._headers['x-real-ip'],
-        port: this._headers['x-real-port']
-      };
+    const address = this._headers['x-real-ip'];
+    const port = this._headers['x-real-port'];
+
+    if (typeof address === 'undefined') {
+      return this._connection.address();
     }
 
-    const parsedAddress = this._connection.address();
-
     return {
-      address: parsedAddress.address,
-      port: parsedAddress.port
+      address,
+      port
     };
   }
 
@@ -268,7 +272,7 @@ export default class ServerRequest extends Readable {
 
     const more = this.push(data);
 
-    if (!more && this._decoder) {
+    if (more === false && this._decoder) {
       this._decoder.pause();
     }
   }

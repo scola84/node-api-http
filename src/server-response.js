@@ -85,7 +85,9 @@ export default class ServerResponse extends Writable {
     }
 
     if (value === null) {
-      return this._response.getHeader(name);
+      const header = this._response.getHeader(name);
+      return typeof header === 'undefined' ?
+        null : header;
     }
 
     if (value === false) {
@@ -153,8 +155,9 @@ export default class ServerResponse extends Writable {
     this._log('ServerResponse _finish');
 
     if (this._response) {
-      this._response
-        .end(() => this._tearDown());
+      this._response.end(() => {
+        this._tearDown();
+      });
     }
   }
 
