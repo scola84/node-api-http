@@ -84,6 +84,10 @@ export default class ServerResponse extends Writable {
       return this._response._headers;
     }
 
+    if (this._response === null) {
+      return this;
+    }
+
     if (value === null) {
       const header = this._response.getHeader(name);
       return typeof header === 'undefined' ?
@@ -104,9 +108,8 @@ export default class ServerResponse extends Writable {
 
     if (this._response) {
       this._response._ended = true;
+      super.end(data, encoding, callback);
     }
-
-    super.end(data, encoding, callback);
   }
 
   write(data, encoding, callback) {
@@ -114,9 +117,8 @@ export default class ServerResponse extends Writable {
 
     if (this._response) {
       this._response._writes += 1;
+      super.write(data, encoding, callback);
     }
-
-    super.write(data, encoding, callback);
   }
 
   _bindThis() {
