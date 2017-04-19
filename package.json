@@ -8,7 +8,8 @@
   "main": "./index.js",
   "jsnext:main": "./index.js",
   "dependencies": {
-    "@scola/error": "^4.3.0",
+    "@scola/error": "^5.0.0",
+    "lodash-es": "^4.17.4",
     "qs": "^6.4.0"
   }
 }
