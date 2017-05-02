@@ -11,6 +11,8 @@ export default class HttpConnection extends EventEmitter {
     this._socket = null;
     this._http = null;
     this._codec = null;
+
+    this._key = null;
     this._user = null;
 
     this._host = null;
@@ -41,6 +43,15 @@ export default class HttpConnection extends EventEmitter {
     }
 
     this._codec = value;
+    return this;
+  }
+
+  key(value = null) {
+    if (value === null) {
+      return this._key;
+    }
+
+    this._key = value;
     return this;
   }
 
