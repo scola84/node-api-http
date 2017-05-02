@@ -1,5 +1,5 @@
 import get from 'lodash-es/get';
-import merge from 'lodash-es/merge';
+import set from 'lodash-es/set';
 import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import { debuglog } from 'util';
@@ -128,7 +128,7 @@ export default class ServerRequest extends Readable {
       this._headers[name.toLowerCase()];
 
     if (typeof header === 'undefined') {
-      return null;
+      return parse === true ? {} : null;
     }
 
     return parse === true ? parseHeader(header) : header;
@@ -157,12 +157,17 @@ export default class ServerRequest extends Readable {
       return this._params;
     }
 
-    merge(this._params, value);
+    this._params = value;
     return this;
   }
 
-  param(name) {
-    return get(this._params, name);
+  param(name, value = null) {
+    if (value === null) {
+      return get(this._params, name);
+    }
+
+    set(this._params, name, value);
+    return this;
   }
 
   query(name = null) {
@@ -178,13 +183,18 @@ export default class ServerRequest extends Readable {
       return this._requestData;
     }
 
-    merge(this._requestData, value);
+    this._requestData = value;
     return this;
   }
 
-  datum(name) {
-    const datum = get(this._requestData, name);
-    return typeof datum === 'undefined' ? null : datum;
+  datum(name, value = null) {
+    if (value === null) {
+      const datum = get(this._requestData, name);
+      return typeof datum === 'undefined' ? null : datum;
+    }
+
+    set(this._requestData, name, value);
+    return this;
   }
 
   allow(method = null, action = null) {
