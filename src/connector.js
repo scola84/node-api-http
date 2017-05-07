@@ -60,7 +60,8 @@ export default class HttpConnector extends EventEmitter {
   }
 
   _request(request, response) {
-    this._log('Connector _request %s %s', request.method, request.url);
+    this._log('Connector _request method=%s url=%s',
+      request.method, request.url);
 
     const connection = new Connection()
       .socket(request.connection);

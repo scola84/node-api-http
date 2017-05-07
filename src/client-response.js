@@ -86,7 +86,7 @@ export default class ClientResponse extends Readable {
   }
 
   _data(data) {
-    this._log('ClientResponse _data %j', data);
+    this._log('ClientResponse _data data=%j', data);
 
     const more = this.push(data);
 

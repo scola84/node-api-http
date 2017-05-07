@@ -37,7 +37,7 @@ export default class ServerRequest extends Readable {
   }
 
   destroy(abort) {
-    this._log('ServerRequest destroy %s', abort);
+    this._log('ServerRequest destroy abort=%s', abort);
 
     if (this._request) {
       this._unbindRequest();
@@ -274,7 +274,7 @@ export default class ServerRequest extends Readable {
   }
 
   _data(data) {
-    this._log('ServerRequest _data %j', data);
+    this._log('ServerRequest _data data=%j', data);
 
     const more = this.push(data);
 

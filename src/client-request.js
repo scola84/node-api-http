@@ -134,7 +134,7 @@ export default class ClientRequest extends Writable {
   }
 
   _write(data, encoding, callback) {
-    this._log('ClientRequest _write %j', data);
+    this._log('ClientRequest _write data=%j', data);
     this._setupWriter().write(data, encoding, callback);
   }
 
