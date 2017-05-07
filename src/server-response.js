@@ -31,11 +31,6 @@ export default class ServerResponse extends Writable {
     }
 
     this._tearDown(abort);
-
-    this._connection = null;
-    this._response = null;
-    this._writer = null;
-    this._encoder = null;
   }
 
   connection(value = null) {

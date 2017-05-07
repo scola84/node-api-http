@@ -45,10 +45,6 @@ export default class ServerRequest extends Readable {
     }
 
     this._tearDown(abort);
-
-    this._connection = null;
-    this._request = null;
-    this._decoder = null;
   }
 
   connection(value = null) {

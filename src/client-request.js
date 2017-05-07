@@ -36,11 +36,6 @@ export default class ClientRequest extends Writable {
 
     this._unbindRequest();
     this._tearDown();
-
-    this._connection = null;
-    this._writer = null;
-    this._encoder = null;
-    this._request = null;
   }
 
   connection(value = null) {

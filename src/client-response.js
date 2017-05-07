@@ -22,10 +22,6 @@ export default class ClientResponse extends Readable {
   destroy() {
     this._log('ClientResponse destroy');
     this._tearDown();
-
-    this._connection = null;
-    this._response = null;
-    this._decoder = null;
   }
 
   connection(value = null) {
