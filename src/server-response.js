@@ -104,6 +104,10 @@ export default class ServerResponse extends Writable {
     if (this._response) {
       this._response._ended = true;
       super.end(data, encoding, callback);
+
+      if (typeof data === 'undefined') {
+        this.emit('respond');
+      }
     }
   }
 
@@ -113,6 +117,7 @@ export default class ServerResponse extends Writable {
     if (this._response) {
       this._response._writes += 1;
       super.write(data, encoding, callback);
+      this.emit('respond');
     }
   }
 
