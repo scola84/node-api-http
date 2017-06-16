@@ -1,5 +1,6 @@
 import { Writable } from 'stream';
 import { debuglog } from 'util';
+import { ScolaError } from '@scola/error';
 import Writer from './helper/writer';
 
 export default class ServerResponse extends Writable {
@@ -119,6 +120,14 @@ export default class ServerResponse extends Writable {
       super.write(data, encoding, callback);
       this.emit('respond');
     }
+  }
+
+  error(message) {
+    return new ScolaError(message);
+  }
+
+  timestamp() {
+    return Math.round(Date.now() / 1000);
   }
 
   _bindThis() {

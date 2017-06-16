@@ -4,6 +4,7 @@ import { Readable } from 'stream';
 import { parse as parseUrl } from 'url';
 import { debuglog } from 'util';
 import parseQuery from 'qs/lib/parse';
+import { ScolaError } from '@scola/error';
 import parseHeader from './helper/parse-header';
 
 export default class ServerRequest extends Readable {
@@ -237,6 +238,14 @@ export default class ServerRequest extends Readable {
       address,
       port
     };
+  }
+
+  error(message) {
+    return new ScolaError(message);
+  }
+
+  timestamp() {
+    return Math.round(Date.now() / 1000);
   }
 
   _bindRequest() {
