@@ -248,6 +248,10 @@ export default class ServerRequest extends Readable {
     return Math.round(Date.now() / 1000);
   }
 
+  uid() {
+    return this._connection.user().id();
+  }
+
   _bindRequest() {
     if (this._request) {
       this._request.on('error', this._handleError);
