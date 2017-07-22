@@ -68,6 +68,7 @@ export default class ClientResponse extends Readable {
 
   _bindDecoder() {
     if (this._decoder) {
+      this._decoder.setMaxListeners(this._decoder.getMaxListeners() + 1);
       this._decoder.on('data', this._handleData);
       this._decoder.on('end', this._handleEnd);
     }
@@ -75,6 +76,7 @@ export default class ClientResponse extends Readable {
 
   _unbindDecoder() {
     if (this._decoder) {
+      this._decoder.setMaxListeners(this._decoder.getMaxListeners() - 1);
       this._decoder.removeListener('data', this._handleData);
       this._decoder.removeListener('end', this._handleEnd);
     }

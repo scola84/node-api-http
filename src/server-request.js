@@ -254,18 +254,21 @@ export default class ServerRequest extends Readable {
 
   _bindRequest() {
     if (this._request) {
+      this._request.setMaxListeners(this._request.getMaxListeners() + 1);
       this._request.on('error', this._handleError);
     }
   }
 
   _unbindRequest() {
     if (this._request) {
+      this._request.setMaxListeners(this._request.getMaxListeners() - 1);
       this._request.removeListener('error', this._handleError);
     }
   }
 
   _bindDecoder() {
     if (this._decoder) {
+      this._decoder.setMaxListeners(this._decoder.getMaxListeners() + 1);
       this._decoder.on('data', this._handleData);
       this._decoder.once('end', this._handleEnd);
     }
@@ -273,6 +276,7 @@ export default class ServerRequest extends Readable {
 
   _unbindDecoder() {
     if (this._decoder) {
+      this._decoder.setMaxListeners(this._decoder.getMaxListeners() - 1);
       this._decoder.removeListener('data', this._handleData);
       this._decoder.removeListener('end', this._handleEnd);
     }

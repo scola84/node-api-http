@@ -112,15 +112,18 @@ export default class ClientRequest extends Writable {
   }
 
   _bindThis() {
-    this.once('finish', this._handleFinish);
+    this.setMaxListeners(this.getMaxListeners() + 1);
+    this.on('finish', this._handleFinish);
   }
 
   _unbindThis() {
+    this.setMaxListeners(this.getMaxListeners() - 1);
     this.removeListener('finish', this._handleFinish);
   }
 
   _bindRequest() {
     if (this._request) {
+      this._request.setMaxListeners(this._request.getMaxListeners() + 1);
       this._request.on('error', this._handleError);
       this._request.on('response', this._handleResponse);
     }
@@ -128,6 +131,7 @@ export default class ClientRequest extends Writable {
 
   _unbindRequest() {
     if (this._request) {
+      this._request.setMaxListeners(this._request.getMaxListeners() - 1);
       this._request.removeListener('error', this._handleError);
       this._request.removeListener('response', this._handleResponse);
     }

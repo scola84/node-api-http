@@ -131,21 +131,25 @@ export default class ServerResponse extends Writable {
   }
 
   _bindThis() {
-    this.once('finish', this._handleFinish);
+    this.setMaxListeners(this.getMaxListeners() + 1);
+    this.on('finish', this._handleFinish);
   }
 
   _unbindThis() {
+    this.setMaxListeners(this.getMaxListeners() - 1);
     this.removeListener('finish', this._handleFinish);
   }
 
   _bindResponse() {
     if (this._response) {
+      this._response.setMaxListeners(this._response.getMaxListeners() + 1);
       this._response.on('error', this._handleError);
     }
   }
 
   _unbindResponse() {
     if (this._response) {
+      this._response.setMaxListeners(this._response.getMaxListeners() - 1);
       this._response.removeListener('error', this._handleError);
     }
   }

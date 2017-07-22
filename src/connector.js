@@ -43,13 +43,15 @@ export default class HttpConnector extends EventEmitter {
 
   _bindServer() {
     if (this._server) {
-      this._server.addListener('error', this._handleError);
-      this._server.addListener('request', this._handleRequest);
+      this._server.setMaxListeners(this._server.getMaxListeners() + 1);
+      this._server.on('error', this._handleError);
+      this._server.on('request', this._handleRequest);
     }
   }
 
   _unbindServer() {
     if (this._server) {
+      this._server.setMaxListeners(this._server.getMaxListeners() - 1);
       this._server.removeListener('error', this._handleError);
       this._server.removeListener('request', this._handleRequest);
     }
