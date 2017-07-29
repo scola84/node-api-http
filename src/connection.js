@@ -8,7 +8,7 @@ export default class HttpConnection extends EventEmitter {
 
     this._log = debuglog('http');
 
-    this._socket = null;
+    this._address = null;
     this._http = null;
     this._codec = null;
 
@@ -19,12 +19,12 @@ export default class HttpConnection extends EventEmitter {
     this._port = null;
   }
 
-  socket(value = null) {
+  address(value = null) {
     if (value === null) {
-      return this._socket;
+      return this._address;
     }
 
-    this._socket = value;
+    this._address = value;
     return this;
   }
 
@@ -90,10 +90,6 @@ export default class HttpConnection extends EventEmitter {
 
   encoder(writer) {
     return this._codec && this._codec.encoder(writer, this) || writer;
-  }
-
-  address() {
-    return this._socket.address();
   }
 
   connected() {

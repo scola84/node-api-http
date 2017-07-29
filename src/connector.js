@@ -66,7 +66,7 @@ export default class HttpConnector extends EventEmitter {
       request.method, request.url);
 
     const connection = new Connection()
-      .socket(request.connection);
+      .address(request.connection.address());
 
     request = new ServerRequest()
       .connection(connection)
