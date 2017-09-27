@@ -270,6 +270,7 @@ export default class ServerRequest extends Readable {
     if (this._decoder) {
       this._decoder.setMaxListeners(this._decoder.getMaxListeners() + 1);
       this._decoder.on('data', this._handleData);
+      this._decoder.on('error', this._handleError);
       this._decoder.once('end', this._handleEnd);
     }
   }
@@ -279,6 +280,7 @@ export default class ServerRequest extends Readable {
       this._decoder.setMaxListeners(this._decoder.getMaxListeners() - 1);
       this._decoder.removeListener('data', this._handleData);
       this._decoder.removeListener('end', this._handleEnd);
+      this._decoder.removeListener('error', this._handleError);
     }
   }
 
@@ -306,7 +308,7 @@ export default class ServerRequest extends Readable {
   }
 
   _error(error) {
-    this.emit('error', error);
+    this.emit('error', this.error('400 invalid_request ' + error));
   }
 
   _setUp() {
@@ -323,7 +325,7 @@ export default class ServerRequest extends Readable {
   }
 
   _tearDown(abort = false) {
-    if (this._decoder) {
+    if (this._decoder && this._decoder !== this._request) {
       this._decoder.end();
     }
 
