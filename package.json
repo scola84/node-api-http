@@ -1,6 +1,6 @@
 {
   "name": "@scola/api-http",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "HTTP API",
   "repository": "github:scola84/node-api-http",
   "author": "M.C. van den Boogaart <scola@kvdb.name>",
