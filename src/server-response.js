@@ -1,3 +1,5 @@
+import get from 'lodash-es/get';
+import set from 'lodash-es/set';
 import { Writable } from 'stream';
 import { debuglog } from 'util';
 import { ScolaError } from '@scola/error';
@@ -13,6 +15,7 @@ export default class ServerResponse extends Writable {
 
     this._connection = null;
     this._response = null;
+    this._responseData = {};
     this._codec = null;
     this._writer = null;
     this._encoder = null;
@@ -96,6 +99,25 @@ export default class ServerResponse extends Writable {
     }
 
     this._response.setHeader(name, value);
+    return this;
+  }
+
+  data(value = null) {
+    if (value === null) {
+      return this._responseData;
+    }
+
+    this._responseData = value;
+    return this;
+  }
+
+  datum(name, value = null) {
+    if (value === null) {
+      const datum = get(this._responseData, name);
+      return typeof datum === 'undefined' ? null : datum;
+    }
+
+    set(this._responseData, name, value);
     return this;
   }
 
