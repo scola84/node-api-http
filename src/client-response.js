@@ -116,7 +116,7 @@ export default class ClientResponse extends Readable {
     }
 
     this._decoder = this._connection
-      .decoder(this._response);
+      .decoder(this._response, this);
 
     this._bindDecoder();
     return this._decoder;

@@ -124,24 +124,50 @@ export default class ServerResponse extends Writable {
   end(data, encoding, callback) {
     this._log('ServerResponse end data=%j', data);
 
-    if (this._response) {
-      this._response._ended = true;
-      super.end(data, encoding, callback);
+    if (this._response === null) {
+      return;
+    }
 
-      if (typeof data === 'undefined') {
-        this.emit('respond');
-      }
+    if (this._response._ended === true) {
+      return;
+    }
+
+    this.header('Connection', 'close');
+
+    this._response._ended = true;
+    super.end(data, encoding, callback);
+
+    if (typeof data === 'undefined') {
+      this.emit('respond');
     }
   }
 
   write(data, encoding, callback) {
     this._log('ServerResponse write data=%j', data);
 
-    if (this._response) {
-      this._response._writes += 1;
-      super.write(data, encoding, callback);
-      this.emit('respond');
+    if (this._response === null) {
+      return;
     }
+
+    if (this._codec === null) {
+      data = '';
+
+      Object.keys(this._response._headers).forEach((name) => {
+        if (name === 'connection') {
+          return;
+        }
+
+        this.header(name, false);
+      });
+
+      this
+        .status(406)
+        .header('Content-Length', 0);
+    }
+
+    this._response._writes += 1;
+    super.write(data, encoding, callback);
+    this.emit('respond');
   }
 
   error(message) {
@@ -204,9 +230,12 @@ export default class ServerResponse extends Writable {
     }
 
     this._writer = new Writer();
-    this._encoder = this._codec ?
-      this._codec.encoder(this._writer, this._connection) :
-      this._writer;
+    this._encoder = this._writer;
+
+    if (Boolean(this._codec) === true) {
+      this._encoder = this._codec
+        .encoder(this._writer, this._connection, this);
+    }
 
     this._encoder
       .pipe(this._response);

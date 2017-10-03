@@ -287,6 +287,11 @@ export default class ServerRequest extends Readable {
   _read() {
     this._log('ServerRequest _read');
 
+    if (this._codec === null) {
+      this.emit('error', this.error('415 invalid_request'));
+      return;
+    }
+
     if (this._request) {
       this._setUp().resume();
     }
@@ -316,9 +321,12 @@ export default class ServerRequest extends Readable {
       return this._decoder;
     }
 
-    this._decoder = this._codec ?
-      this._codec.decoder(this._request, this._connection, this) :
-      this._request;
+    this._decoder = this._request;
+
+    if (Boolean(this._codec) === true) {
+      this._decoder = this._codec
+        .decoder(this._request, this._connection, this);
+    }
 
     this._bindDecoder();
     return this._decoder;

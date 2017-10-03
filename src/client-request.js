@@ -167,7 +167,7 @@ export default class ClientRequest extends Writable {
 
     this._writer = new Writer();
     this._encoder = this._connection
-      .encoder(this._writer);
+      .encoder(this._writer, this);
 
     this._encoder
       .pipe(this._setupRequest());

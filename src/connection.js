@@ -84,12 +84,16 @@ export default class HttpConnection extends EventEmitter {
     return this;
   }
 
-  decoder(writer) {
-    return this._codec && this._codec.decoder(writer, this) || writer;
+  decoder(writer, source) {
+    return this._codec &&
+      this._codec.decoder(writer, this, source) ||
+      writer;
   }
 
-  encoder(writer) {
-    return this._codec && this._codec.encoder(writer, this) || writer;
+  encoder(writer, target) {
+    return this._codec &&
+      this._codec.encoder(writer, this, target) ||
+      writer;
   }
 
   connected() {
