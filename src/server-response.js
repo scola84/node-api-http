@@ -136,10 +136,6 @@ export default class ServerResponse extends Writable {
 
     this._response._ended = true;
     super.end(data, encoding, callback);
-
-    if (typeof data === 'undefined') {
-      this.emit('respond');
-    }
   }
 
   write(data, encoding, callback) {
@@ -167,15 +163,10 @@ export default class ServerResponse extends Writable {
 
     this._response._writes += 1;
     super.write(data, encoding, callback);
-    this.emit('respond');
   }
 
   error(message) {
     return new ScolaError(message);
-  }
-
-  timestamp() {
-    return Math.round(Date.now() / 1000);
   }
 
   _bindThis() {

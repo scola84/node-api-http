@@ -244,12 +244,19 @@ export default class ServerRequest extends Readable {
     return new ScolaError(message);
   }
 
-  timestamp() {
-    return Math.round(Date.now() / 1000);
+  uid() {
+    const user = this._connection.user();
+    return user && user.id() || null;
   }
 
-  uid() {
-    return this._connection.user().id();
+  toJSON() {
+    return {
+      address: this.address(),
+      headers: this._headers,
+      method: this._method,
+      path: this._path,
+      query: this._query
+    };
   }
 
   _bindRequest() {
