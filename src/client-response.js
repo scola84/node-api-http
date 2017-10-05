@@ -66,6 +66,11 @@ export default class ClientResponse extends Readable {
     return this;
   }
 
+  decoder() {
+    this._setUp();
+    return this._decoder;
+  }
+
   _bindDecoder() {
     if (this._decoder) {
       this._decoder.setMaxListeners(this._decoder.getMaxListeners() + 1);
@@ -84,7 +89,7 @@ export default class ClientResponse extends Readable {
 
   _read() {
     this._log('ClientResponse _read');
-    this._setUp().resume();
+    this.decoder().resume();
   }
 
   _data(data) {

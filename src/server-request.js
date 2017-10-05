@@ -240,6 +240,11 @@ export default class ServerRequest extends Readable {
     };
   }
 
+  decoder() {
+    this._setUp();
+    return this._decoder;
+  }
+
   error(message) {
     return new ScolaError(message);
   }
@@ -300,7 +305,7 @@ export default class ServerRequest extends Readable {
     }
 
     if (this._request) {
-      this._setUp().resume();
+      this.decoder().resume();
     }
   }
 

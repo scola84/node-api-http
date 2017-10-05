@@ -121,6 +121,16 @@ export default class ServerResponse extends Writable {
     return this;
   }
 
+  encoder() {
+    this._setUp();
+    return this._encoder;
+  }
+
+  writer() {
+    this._setUp();
+    return this._writer;
+  }
+
   end(data, encoding, callback) {
     this._log('ServerResponse end data=%j', data);
 
@@ -197,7 +207,7 @@ export default class ServerResponse extends Writable {
     this._log('ServerResponse _write data=%j', data);
 
     if (this._response) {
-      this._setUp().write(data, encoding, callback);
+      this.writer().write(data, encoding, callback);
     }
   }
 

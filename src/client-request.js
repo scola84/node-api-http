@@ -111,6 +111,21 @@ export default class ClientRequest extends Writable {
     return this;
   }
 
+  encoder() {
+    this._setupWriter();
+    return this._encoder;
+  }
+
+  request() {
+    this._setupRequest();
+    return this._request;
+  }
+
+  writer() {
+    this._setupWriter();
+    return this._writer;
+  }
+
   _bindThis() {
     this.setMaxListeners(this.getMaxListeners() + 1);
     this.on('finish', this._handleFinish);
@@ -139,12 +154,12 @@ export default class ClientRequest extends Writable {
 
   _write(data, encoding, callback) {
     this._log('ClientRequest _write data=%j', data);
-    this._setupWriter().write(data, encoding, callback);
+    this.writer().write(data, encoding, callback);
   }
 
   _finish() {
     this._log('ClientRequest _finish');
-    this._setupRequest().end(() => this._tearDown());
+    this.request().end(() => this._tearDown());
   }
 
   _error(error) {
@@ -170,7 +185,7 @@ export default class ClientRequest extends Writable {
       .encoder(this._writer, this);
 
     this._encoder
-      .pipe(this._setupRequest());
+      .pipe(this.request());
 
     return this._writer;
   }
