@@ -260,7 +260,8 @@ export default class ServerRequest extends Readable {
       headers: this._headers,
       method: this._method,
       path: this._path,
-      query: this._query
+      query: this._query,
+      uid: this.uid()
     };
   }
 
