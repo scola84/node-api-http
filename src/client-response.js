@@ -20,8 +20,12 @@ export default class ClientResponse extends Readable {
   }
 
   destroy() {
-    this._log('ClientResponse destroy');
+    this._destroy(null, () => {});
+  }
+
+  _destroy(error, callback) {
     this._tearDown();
+    callback(error);
   }
 
   connection(value = null) {
@@ -113,18 +117,17 @@ export default class ClientResponse extends Readable {
 
     if (type.indexOf(codec.type) === -1) {
       this.push('500 invalid_response ' + this._response.statusMessage);
-      return this._response;
+      return;
     }
 
     if (this._decoder) {
-      return this._decoder;
+      return;
     }
 
     this._decoder = this._connection
       .decoder(this._response, this);
 
     this._bindDecoder();
-    return this._decoder;
   }
 
   _tearDown() {

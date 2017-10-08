@@ -37,15 +37,18 @@ export default class ServerRequest extends Readable {
     this._handleError = (e) => this._error(e);
   }
 
-  destroy(abort) {
-    this._log('ServerRequest destroy abort=%s', abort);
+  destroy() {
+    this._destroy(null, () => {});
+  }
 
+  _destroy(error, callback) {
     if (this._request) {
       this._unbindRequest();
       this._request.destroy();
     }
 
-    this._tearDown(abort);
+    this._tearDown();
+    callback(error);
   }
 
   connection(value = null) {
@@ -300,7 +303,9 @@ export default class ServerRequest extends Readable {
   _read() {
     this._log('ServerRequest _read');
 
-    if (this._codec === null) {
+    const length = Number(this.header('Content-Length'));
+
+    if (this._codec === null && length > 0) {
       this.emit('error', this.error('415 invalid_request'));
       return;
     }
@@ -331,7 +336,7 @@ export default class ServerRequest extends Readable {
 
   _setUp() {
     if (this._decoder) {
-      return this._decoder;
+      return;
     }
 
     this._decoder = this._request;
@@ -342,20 +347,14 @@ export default class ServerRequest extends Readable {
     }
 
     this._bindDecoder();
-    return this._decoder;
   }
 
-  _tearDown(abort = false) {
+  _tearDown() {
     if (this._decoder && this._decoder !== this._request) {
       this._decoder.end();
     }
 
     this._unbindDecoder();
-
-    if (abort === true) {
-      this.emit('abort');
-    }
-
     this.push(null);
   }
 }

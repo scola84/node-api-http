@@ -32,10 +32,17 @@ export default class ClientRequest extends Writable {
   }
 
   destroy() {
-    this._log('ClientRequest destroy');
+    this._destroy(null, () => {});
+  }
 
-    this._unbindRequest();
+  _destroy(error, callback) {
+    if (this._request) {
+      this._unbindRequest();
+      this._request.destroy();
+    }
+
     this._tearDown();
+    callback(error);
   }
 
   connection(value = null) {
@@ -177,7 +184,7 @@ export default class ClientRequest extends Writable {
 
   _setupWriter() {
     if (this._writer) {
-      return this._writer;
+      return;
     }
 
     this._writer = new Writer();
@@ -186,13 +193,11 @@ export default class ClientRequest extends Writable {
 
     this._encoder
       .pipe(this.request());
-
-    return this._writer;
   }
 
   _setupRequest() {
     if (this._request) {
-      return this._request;
+      return;
     }
 
     const user = this._connection.user();
@@ -224,7 +229,6 @@ export default class ClientRequest extends Writable {
     });
 
     this._bindRequest();
-    return this._request;
   }
 
   _tearDown() {

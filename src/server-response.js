@@ -26,15 +26,18 @@ export default class ServerResponse extends Writable {
     this._bindThis();
   }
 
-  destroy(abort) {
-    this._log('ServerResponse destroy abort=%s', abort);
+  destroy() {
+    this._destroy(null, () => {});
+  }
 
+  _destroy(error, callback) {
     if (this._response) {
       this._unbindResponse();
       this._response.destroy();
     }
 
-    this._tearDown(abort);
+    this._tearDown();
+    callback(error);
   }
 
   connection(value = null) {
@@ -172,7 +175,9 @@ export default class ServerResponse extends Writable {
     }
 
     this._response._writes += 1;
+
     super.write(data, encoding, callback);
+    this.emit('write');
   }
 
   error(message) {
@@ -227,7 +232,7 @@ export default class ServerResponse extends Writable {
 
   _setUp() {
     if (this._writer) {
-      return this._writer;
+      return;
     }
 
     this._writer = new Writer();
@@ -238,23 +243,15 @@ export default class ServerResponse extends Writable {
         .encoder(this._writer, this._connection, this);
     }
 
-    this._encoder
-      .pipe(this._response);
-
-    return this._writer;
+    this._encoder.pipe(this._response);
   }
 
-  _tearDown(abort = false) {
+  _tearDown() {
     if (this._writer) {
       this._writer.end();
     }
 
     this._unbindThis();
-
-    if (abort === true) {
-      this.emit('abort');
-    }
-
     this.end();
   }
 }
