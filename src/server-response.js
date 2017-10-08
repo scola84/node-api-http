@@ -145,7 +145,9 @@ export default class ServerResponse extends Writable {
       return;
     }
 
-    this.header('Connection', 'close');
+    if (this._response._writes === 0) {
+      this.header('Connection', 'close');
+    }
 
     this._response._ended = true;
     super.end(data, encoding, callback);
